@@ -1,5 +1,5 @@
-# Command Center v1.2.1 — Button Fix
+# Command Center v2.0 Modular
 
-Fixes Safari/PWA button issue by avoiding automatic element globals and forcing service worker refresh.
+Modular PWA codebase. No embedded personal financial data.
 
-No embedded personal financial data.
+Files: index.html, style.css, storage.js, engine.js, ui.js, app.js, sw.js, manifest.webmanifest, icon.svg.
