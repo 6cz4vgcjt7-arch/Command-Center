@@ -1,3 +1,5 @@
-# Command Center Clean Onboarding v1
+# Command Center v1.2 — Decision Engine
 
-Privacy-first build: no real account names, balances, dates, or demo financial data. User enters mission and accounts on first launch.
+Adds month-by-month payoff simulation, strategy comparison, forecast, estimated interest, opportunity analysis, and explainable rules.
+
+No embedded personal financial data.
