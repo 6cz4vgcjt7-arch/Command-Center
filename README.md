@@ -1,5 +1,5 @@
-# Command Center v1.2 — Decision Engine
+# Command Center v1.2.1 — Button Fix
 
-Adds month-by-month payoff simulation, strategy comparison, forecast, estimated interest, opportunity analysis, and explainable rules.
+Fixes Safari/PWA button issue by avoiding automatic element globals and forcing service worker refresh.
 
 No embedded personal financial data.
