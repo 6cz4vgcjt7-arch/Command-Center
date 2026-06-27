@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F1115">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Command Center</title>
+<style>
+:root{--bg:#0F1115;--card:#1A1D23;--card2:#22262E;--text:#F4F6F8;--muted:#9EA5B1;--green:#74C69D;--blue:#7BAAF7;--ring:#343A46}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:88px}
+header{position:sticky;top:0;background:#0F1115ee;backdrop-filter:blur(12px);padding:18px;text-align:center;z-index:2}
+h1{font-size:15px;letter-spacing:.1em;margin:0}.screen{display:none;padding:18px}.screen.active{display:block}
+.card{background:var(--card);border-radius:22px;padding:18px;margin:14px 0}.label{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.big{font-size:26px;font-weight:900;line-height:1.12}.sub{font-size:15px;color:var(--muted);margin-top:7px}.row{display:flex;gap:12px}.row>.card{flex:1}
+.ringwrap{display:flex;justify-content:center;margin:18px 0}.ring{width:178px;height:178px;border-radius:50%;background:conic-gradient(var(--green) 0 var(--pct),var(--ring) var(--pct) 100%);display:flex;align-items:center;justify-content:center;position:relative}.ring:after{content:"";position:absolute;inset:28px;border-radius:50%;background:var(--bg)}.ring b{z-index:1;font-size:48px}
+.center{text-align:center}.btn{border:0;border-radius:22px;background:var(--green);color:#07130d;padding:16px 18px;width:100%;font-size:19px;font-weight:900;margin:12px 0}.btn2{background:var(--card2);color:var(--text)}.btnDanger{background:#392224;color:#ffb4b4}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);height:82px;background:#151820;border-top:1px solid #242936;display:flex;justify-content:space-around;align-items:center}
+.nav button{background:none;border:0;color:var(--muted);font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:5px}.nav button.active{color:var(--text)}.dot{width:15px;height:15px;border-radius:50%;background:currentColor}
+input,select{width:100%;background:var(--card2);border:1px solid #343A46;border-radius:16px;color:var(--text);padding:13px;font-size:17px;margin-top:8px}
+.account{display:flex;justify-content:space-between;gap:14px;align-items:center}.smallbtn{border:0;border-radius:14px;padding:10px 12px;background:var(--card2);color:var(--text);font-weight:800}
+.checkItem{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:20px;padding:16px;margin:10px 0}.box{width:28px;height:28px;border-radius:8px;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;color:#07130d;font-weight:900}.checkItem.on .box{background:var(--green);border-color:var(--green)}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1>COMMAND CENTER</h1></header>
+
+<section id="onboarding" class="screen">
+  <div class="ringwrap"><div class="ring" style="--pct:0%"><b>0%</b></div></div>
+  <div class="card"><div class="label">Welcome</div><div class="big">Build your first mission.</div><div class="sub">Local data only. No bank links. No AI. No account numbers.</div></div>
+  <div class="card">
+    <div class="label">Mission</div>
+    <select id="setupMission"><option>Eliminate High Interest Debt</option><option>Build Emergency Fund</option><option>Save for a Project</option><option>Grow Investments</option></select>
+    <input id="setupStartingDebt" type="number" placeholder="Starting mission amount, optional">
+    <input id="setupMonthlyExtra" type="number" placeholder="Monthly extra payment, optional">
+  </div>
+  <button class="btn" onclick="finishSetup()">Start Command Center</button>
+</section>
+
+<section id="home" class="screen active">
+  <div class="ringwrap"><div class="ring" id="ring" style="--pct:0%"><b id="pct">0%</b></div></div>
+  <div class="center sub">Mission Progress</div>
+  <div class="card"><div class="label">Current Mission</div><div class="big" id="missionTitle">Set up your mission</div><div class="sub" id="focusMode">Focus mode: Not set</div></div>
+  <div class="row">
+    <div class="card"><div class="label">Status</div><div class="big" style="color:var(--green)" id="status">Ready</div><div class="sub" id="statusSub">Add accounts to begin.</div></div>
+    <div class="card"><div class="label">Today’s Mission</div><div class="big" id="todayMission">Set up</div><div class="sub" id="missionReason">Add your first account.</div></div>
+  </div>
+  <div class="card"><div class="label">Next Milestone</div><div class="big" id="milestone">First Monthly Review</div><div class="sub" style="color:var(--blue)" id="milestoneSub">Once accounts are added.</div></div>
+  <button class="btn" onclick="startReview()">Monthly Review</button>
+</section>
+
+<section id="accounts" class="screen">
+  <div class="card"><div class="label">Accounts</div><div class="big">Manual setup</div><div class="sub">Enter each account once. Monthly Review only updates changed balances.</div></div>
+  <div id="accountList"></div>
+  <div class="card"><div class="label">Add account</div><input id="aName" placeholder="Account name"><input id="aBalance" type="number" placeholder="Balance"><input id="aApr" type="number" placeholder="APR"><input id="aPromoEnd" type="date" placeholder="Promo end, optional"><button class="btn" onclick="addAccount()">Save Account</button></div>
+</section>
+
+<section id="progress" class="screen">
+  <div class="card account"><div><div class="label">Mission</div><div class="big" id="progressMission">Not set</div><div class="sub">Current active focus</div></div><div class="big" style="color:var(--green)" id="debtProgress">0%</div></div>
+  <div class="card"><div class="label">Recommendation</div><div class="big" id="recCard">Add account</div><div class="sub" id="recReason">No active accounts yet.</div></div>
+  <div class="card"><div class="label">Explanation</div><div class="sub">The rule engine pays minimums on all accounts, then sends extra dollars to the highest effective APR unless a promotional deadline is urgent.</div></div>
+</section>
+
+<section id="review" class="screen"><div class="big">What changed since last month?</div><div class="sub">Select only what needs updating.</div><div id="reviewChecks"></div><button class="btn" onclick="continueReview()">Continue</button></section>
+<section id="entry" class="screen"><div class="big">Update selected items</div><div class="sub">Only selected accounts appear here.</div><div id="entryFields"></div><button class="btn" onclick="saveReview()">Save Monthly Review</button></section>
+
+<section id="settings" class="screen">
+  <div class="card"><div class="label">Privacy</div><div class="big">High</div><div class="sub">Percentages and missions show by default. Dollar amounts stay inside Accounts.</div></div>
+  <div class="card"><div class="label">Rules</div><div class="big">Avalanche + protect promos</div><div class="sub">Transparent rule engine. No AI. No bank links.</div></div>
+  <div class="card"><div class="label">Storage</div><div class="big">Local browser storage</div><div class="sub">Data stays on this device/browser unless you export it.</div></div>
+  <button class="btn btn2" onclick="exportData()">Export Backup</button><button class="btn btnDanger" onclick="resetAll()">Reset All Local Data</button>
+</section>
+
+<nav class="nav"><button class="active" onclick="nav('home',this)"><span class="dot"></span>Home</button><button onclick="nav('accounts',this)"><span class="dot"></span>Accounts</button><button onclick="nav('progress',this)"><span class="dot"></span>Progress</button><button onclick="nav('settings',this)"><span class="dot"></span>Settings</button></nav>
+</div>
+
+<script>
+const key='cc_clean_v1_data';
+const blank={setupComplete:false,mission:'Eliminate High Interest Debt',startingAmount:0,monthlyExtra:0,accounts:[],reviewHistory:[]};
+let data=JSON.parse(localStorage.getItem(key)||'null')||JSON.parse(JSON.stringify(blank)); let selected=[];
+function save(){localStorage.setItem(key,JSON.stringify(data));render();}
+function totalBalance(){return data.accounts.reduce((s,a)=>s+(+a.balance||0),0)}
+function progressPct(){let start=+data.startingAmount||0;if(start<=0)return data.accounts.length?1:0;return Math.max(0,Math.min(100,Math.round((1-totalBalance()/start)*100)))}
+function recommendation(){let active=data.accounts.filter(a=>+a.balance>0);if(!active.length)return null;return active.sort((a,b)=>(+b.apr||0)-(+a.apr||0))[0]}
+function showOnly(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function render(){if(!data.setupComplete){showOnly('onboarding');return;}let pct=progressPct();pct=isFinite(pct)?pct:0;document.getElementById('pct').textContent=pct+'%';document.getElementById('ring').style.setProperty('--pct',pct+'%');document.getElementById('debtProgress').textContent=pct+'%';document.getElementById('missionTitle').textContent=data.mission;document.getElementById('progressMission').textContent=data.mission;document.getElementById('focusMode').textContent='Focus mode: Mission';let r=recommendation();if(r){todayMission.textContent='Pay '+r.name;missionReason.textContent='Highest effective APR: '+Number(r.apr).toFixed(2)+'%';recCard.textContent=r.name;recReason.textContent='Highest effective APR: '+Number(r.apr).toFixed(2)+'%';status.textContent='On Track';statusSub.textContent='Next account identified.';milestone.textContent='Next Monthly Review';milestoneSub.textContent='Update only changed balances.'}else{todayMission.textContent='Add account';missionReason.textContent='Create your first account to begin.';recCard.textContent='Add account';recReason.textContent='No active accounts yet.';status.textContent='Ready';statusSub.textContent='Add accounts to begin.'}accountList.innerHTML=data.accounts.map((a,i)=>`<div class='card account'><div><div class='label'>${esc(a.name)}</div><div class='big'>$${Number(a.balance||0).toLocaleString()}</div><div class='sub'>APR ${Number(a.apr||0).toFixed(2)}% ${a.promoEnd?' • Promo '+a.promoEnd:''}</div></div><button class='smallbtn' onclick='delAccount(${i})'>Delete</button></div>`).join('')||`<div class='card'><div class='big'>No accounts yet.</div><div class='sub'>Add your first account below.</div></div>`}
+function nav(id,btn){showOnly(id);document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');if(data.setupComplete)render()}
+function finishSetup(){data.setupComplete=true;data.mission=setupMission.value;data.startingAmount=+setupStartingDebt.value||0;data.monthlyExtra=+setupMonthlyExtra.value||0;save();document.querySelectorAll('.nav button')[0].click()}
+function addAccount(){data.accounts.push({name:aName.value||'Account',balance:+aBalance.value||0,apr:+aApr.value||0,promoEnd:aPromoEnd.value||null});if(!data.startingAmount)data.startingAmount=totalBalance();aName.value=aBalance.value=aApr.value=aPromoEnd.value='';save()}
+function delAccount(i){data.accounts.splice(i,1);save()}
+function startReview(){if(!data.accounts.length){nav('accounts',document.querySelectorAll('.nav button')[1]);return;}selected=[];showOnly('review');reviewChecks.innerHTML=data.accounts.map((a,i)=>`<div class='checkItem' onclick='tog(this,${i})'><div class='box'></div><div class='big' style='font-size:21px'>${esc(a.name)}</div></div>`).join('')}
+function tog(el,i){el.classList.toggle('on');el.querySelector('.box').textContent=el.classList.contains('on')?'✓':'';selected=Array.from(document.querySelectorAll('.checkItem')).map((el,j)=>el.classList.contains('on')?j:null).filter(x=>x!==null)}
+function continueReview(){showOnly('entry');entryFields.innerHTML=selected.map(i=>`<div class='card'><div class='label'>${esc(data.accounts[i].name)}</div><input type='number' id='bal_${i}' value='${data.accounts[i].balance}'></div>`).join('')||'<div class="card"><div class="big">Nothing selected</div><div class="sub">Tap Save to complete the review.</div></div>'}
+function saveReview(){selected.forEach(i=>{let v=document.getElementById('bal_'+i);if(v)data.accounts[i].balance=+v.value||0});data.reviewHistory.push({date:new Date().toISOString(),totalBalance:totalBalance(),progress:progressPct()});save();document.querySelectorAll('.nav button')[0].click()}
+function exportData(){let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='command-center-backup.json';a.click()}
+function resetAll(){if(confirm('Reset all local Command Center data on this browser?')){localStorage.removeItem(key);data=JSON.parse(JSON.stringify(blank));location.reload()}}
+function esc(str){return String(str).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}render();
+</script>
+</body></html>
