@@ -1,23 +1,31 @@
 # Seasons Vision
 
-Seasons is a weekly financial habit app that helps people build lasting financial achievements.
+Seasons is a weekly financial habit app that helps people build lasting financial achievements through intentional observation, reflection, and steady progress.
 
-It is designed around one intentional Weekly Review that encourages observation, reflection, and steady progress — not constant monitoring, financial anxiety, or engagement loops.
+The goal of Seasons is not to help people think about money more often. The goal is to help people think about money intentionally, once each week, so they can spend the rest of their week living their lives.
 
-## What Seasons is
+## The Core Idea
 
-Seasons is a financial logbook and planner. It helps people sit down once a week, record where they stand, notice what changed, and leave with a clear focus.
+Every financial life has seasons. Seasons helps people choose their current financial focus, complete a calm Weekly Review, notice what changed, and build meaningful achievements over time.
 
-## What Seasons is not
+## The Four Financial Seasons
 
-Seasons is not a transaction feed, budgeting spreadsheet, bank aggregator, investment dashboard, or gamified finance app.
+### Establish
+Build your financial foundation.
 
-## Core rhythm
+### Grow
+Increase your financial strength.
 
-1. Observe — update account balances.
-2. Reflect — notice what changed.
-3. Progress — continue with one clear focus.
+### Steward
+Use your resources with intention.
 
-## Achievements
+### Preserve
+Protect your financial independence.
 
-Seasons recognizes real financial achievements. These are not arbitrary badges. They are meaningful milestones that matter outside the app, such as paying off an account, building an emergency fund, or completing a financial season.
+Financial seasons are periods of focus, not levels to complete. A person may move between seasons many times throughout life.
+
+## The Weekly Practice
+
+Observe. Reflect. Progress.
+
+Your season may change. Your weekly habit remains the same.

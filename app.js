@@ -1,12 +1,30 @@
 (function(){
-  const APP_VERSION="v0.9";
-  const APP_BUILD=90;
+  const APP_VERSION="v1.0";
+  const APP_BUILD=100;
   let updateInfo=null;
   let versionTapCount=0;
   let data=window.CCStorage.load();
   const UI=window.SeasonsUI;
   const E=window.CCEngine;
   const screens={command:UI.byId("command"),review:UI.byId("review"),accounts:UI.byId("accounts"),settings:UI.byId("settings"),onboarding:UI.byId("onboarding")};
+
+  const SEASONS={
+    establish:{icon:"🌱",name:"Establish",line:"Build your financial foundation.",description:"Plant the seeds for a lifetime of financial confidence."},
+    grow:{icon:"☀️",name:"Grow",line:"Increase your financial strength.",description:"Cultivate consistent habits that build long-term wealth."},
+    steward:{icon:"🍂",name:"Steward",line:"Use your resources with intention.",description:"Care wisely for the life you've built and the people you love."},
+    preserve:{icon:"❄️",name:"Preserve",line:"Protect your financial independence.",description:"Preserve what you've built so it can continue supporting your life and the people who matter most."}
+  };
+  function season(id){return SEASONS[id]||SEASONS.establish;}
+  function setSeason(id){const s=season(id);data.seasonId=id;data.seasonName=s.name;data.seasonSince=data.seasonSince || new Date().toLocaleDateString(undefined,{month:"long",year:"numeric"});}
+  function recommendSeason(){
+    const answers=data.onboarding?.answers||{};
+    const scores={establish:0,grow:0,steward:0,preserve:0};
+    Object.values(answers).forEach(value=>{if(scores[value]!==undefined)scores[value]+=1;});
+    const best=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0]?.[0]||"establish";
+    data.onboarding.recommendedSeason=best;
+    return best;
+  }
+
 
   function save(){window.CCStorage.save(data);}
   function saveRender(screen="command"){save();render(screen);}
@@ -21,20 +39,69 @@
   }
 
   function renderOnboarding(){
+    data.onboarding=data.onboarding||{step:"welcome",answers:{},recommendedSeason:"establish"};
+    const step=data.onboarding.step||"welcome";
+    const answers=data.onboarding.answers||{};
+    if(step==="welcome"){
+      screens.onboarding.innerHTML=`
+        <div class="topbar"><div class="brand">SEASONS</div>${UI.cycle(0,"tiny")}</div>
+        <div class="title">Every financial life has seasons.</div>
+        <p class="sub">Seasons helps you build lasting financial achievements through one intentional weekly habit.</p>
+        <div class="card"><div class="label">The Weekly Practice</div><div class="value">Observe. Reflect. Progress.</div><p class="sub">Your season may change. Your weekly habit remains the same.</p></div>
+        <button class="btn" data-action="startSeasonReflection">Begin</button>`;
+      return;
+    }
+    if(step==="discover"){
+      screens.onboarding.innerHTML=`
+        <div class="topbar"><div class="brand">SEASONS</div>${UI.cycle(0,"tiny")}</div>
+        <div class="screenTitle">Discover Your Current Season</div>
+        <p class="sub">A short reflection to help choose your current focus. Seasons recommends. You decide.</p>
+        <div class="card seasonQuestion"><div class="label">What feels like your highest financial priority today?</div>
+          <select id="seasonQ1"><option value="establish" ${answers.q1==="establish"?"selected":""}>Build a stronger financial foundation</option><option value="grow" ${answers.q1==="grow"?"selected":""}>Grow my wealth</option><option value="steward" ${answers.q1==="steward"?"selected":""}>Use my resources more intentionally</option><option value="preserve" ${answers.q1==="preserve"?"selected":""}>Protect what I've built</option></select>
+        </div>
+        <div class="card seasonQuestion"><div class="label">Which statement sounds most like you?</div>
+          <select id="seasonQ2"><option value="establish" ${answers.q2==="establish"?"selected":""}>I want less financial stress.</option><option value="grow" ${answers.q2==="grow"?"selected":""}>I want my money to grow.</option><option value="steward" ${answers.q2==="steward"?"selected":""}>I want greater confidence in my financial decisions.</option><option value="preserve" ${answers.q2==="preserve"?"selected":""}>I want to know what I've built will last.</option></select>
+        </div>
+        <div class="card seasonQuestion"><div class="label">Which achievement would have the greatest impact over the next few years?</div>
+          <select id="seasonQ3"><option value="establish" ${answers.q3==="establish"?"selected":""}>Eliminate high-interest debt or build stability</option><option value="grow" ${answers.q3==="grow"?"selected":""}>Invest consistently and build long-term wealth</option><option value="steward" ${answers.q3==="steward"?"selected":""}>Balance home, family, and major decisions</option><option value="preserve" ${answers.q3==="preserve"?"selected":""}>Protect financial independence for the future</option></select>
+        </div>
+        <button class="btn" data-action="recommendCurrentSeason">Continue</button>`;
+      return;
+    }
+    if(step==="recommendation"){
+      const rec=season(data.onboarding.recommendedSeason||recommendSeason());
+      screens.onboarding.innerHTML=`
+        <div class="topbar"><div class="brand">SEASONS</div>${UI.cycle(1,"tiny")}</div>
+        <div class="screenTitle">Based on your reflections...</div>
+        <div class="card seasonCard selectedSeason"><div class="seasonIcon">${rec.icon}</div><div><div class="value">${rec.name}</div><div class="sub">${rec.line}</div><p class="sub">${rec.description}</p></div></div>
+        <p class="sub center">Does this feel like the right current focus?</p>
+        <button class="btn" data-action="acceptSeasonRecommendation">Continue</button>
+        <button class="btn secondary" data-action="chooseAnotherSeason">Choose Another Season</button>`;
+      return;
+    }
+    if(step==="chooseSeason"){
+      screens.onboarding.innerHTML=`
+        <div class="topbar"><div class="brand">SEASONS</div>${UI.cycle(1,"tiny")}</div>
+        <div class="screenTitle">Choose Your Current Season</div>
+        <p class="sub">Financial seasons are periods of focus, not levels to complete.</p>
+        <div class="seasonGrid">${Object.entries(SEASONS).map(([id,s])=>`<button class="seasonCard ${data.seasonId===id?"selectedSeason":""}" data-action="selectSeason" data-season="${id}"><span class="seasonIcon">${s.icon}</span><span><b>${s.name}</b><span class="sub">${s.line}</span></span></button>`).join("")}</div>`;
+      return;
+    }
     screens.onboarding.innerHTML=`
-      <div class="topbar"><div class="brand">SEASONS</div>${UI.leaf()}</div>
-      <div class="title">Your first Season.</div>
-      <p class="sub">Review your accounts once a week. Record where you stand. Leave with a clear focus.</p>
+      <div class="topbar"><div class="brand">SEASONS</div>${UI.cycle(2,"tiny")}</div>
+      <div class="screenTitle">Build Your Weekly Review</div>
+      <p class="sub">Set a simple weekly appointment. You can change this later.</p>
+      <div class="card"><div class="label">Current Season</div><div class="value">${season(data.seasonId).icon} ${UI.escapeHtml(data.seasonName)}</div><div class="sub">${season(data.seasonId).line}</div></div>
       <div class="card">
         <div class="label">Weekly Review</div>
-        <select id="setupDay"><option>Thursday</option><option>Sunday</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Friday</option><option>Saturday</option></select>
-        <input id="setupTime" value="7:30 PM" placeholder="Review time">
+        <select id="setupDay"><option ${data.reviewDay==="Thursday"?"selected":""}>Thursday</option><option ${data.reviewDay==="Sunday"?"selected":""}>Sunday</option><option ${data.reviewDay==="Monday"?"selected":""}>Monday</option><option ${data.reviewDay==="Tuesday"?"selected":""}>Tuesday</option><option ${data.reviewDay==="Wednesday"?"selected":""}>Wednesday</option><option ${data.reviewDay==="Friday"?"selected":""}>Friday</option><option ${data.reviewDay==="Saturday"?"selected":""}>Saturday</option></select>
+        <input id="setupTime" value="${UI.escapeHtml(data.reviewTime||"7:30 PM")}" placeholder="Review time">
       </div>
       <div class="card">
         <div class="label">Focus Strategy</div>
-        <select id="setupStrategy"><option value="avalanche">Highest Interest First</option><option value="snowball">Smallest Balance First</option></select>
+        <select id="setupStrategy"><option value="avalanche" ${data.strategy==="avalanche"?"selected":""}>Highest Interest First</option><option value="snowball" ${data.strategy==="snowball"?"selected":""}>Smallest Balance First</option></select>
       </div>
-      <button class="btn" data-action="finishSetup">Begin</button>`;
+      <button class="btn" data-action="finishSetup">Begin Seasons</button>`;
   }
 
   function renderCommand(){
@@ -53,7 +120,7 @@
         <button class="btn" data-action="startReview">${data.review?.status==="inProgress"?"Continue Weekly Review":data.review?.status==="allUpdated"?"Close Week":reviewComplete?"View This Week":"Start Weekly Review"}</button>
       </div>
       <div class="card" data-screen="accounts"><div class="label">Focus</div><div class="value">${f?UI.escapeHtml(f.name):completedAccounts().length?"Season Complete":"Add Account"}</div><div class="spacer"></div><div class="value">${f?UI.money(f.balance):"—"}</div></div>
-      <div class="card"><div class="row"><div><div class="label">Season</div><div class="value">${UI.escapeHtml(data.seasonName)}</div><div class="sub">Since ${UI.escapeHtml(data.seasonSince)} • ${progress}</div>${promoLine}</div><div class="chev">›</div></div></div>`;
+      <div class="card"><div class="row"><div><div class="label">Season</div><div class="value">${season(data.seasonId).icon} ${UI.escapeHtml(data.seasonName)}</div><div class="sub">Since ${UI.escapeHtml(data.seasonSince)} • ${progress}</div>${promoLine}</div><div class="chev">›</div></div></div>`;
   }
 
   function reviewAccounts(){return E.reviewOrder(data);}
@@ -303,7 +370,7 @@
     if("caches" in window){const keys=await caches.keys();await Promise.all(keys.map(key=>caches.delete(key)));}
   }
   function loadDemoDataset(){
-    data.setupComplete=true;data.reviewDay=data.reviewDay||"Thursday";data.reviewTime=data.reviewTime||"7:30 PM";data.strategy=data.strategy||"avalanche";data.seasonName="Debt Freedom";data.seasonSince="June 2026";
+    data.setupComplete=true;data.reviewDay=data.reviewDay||"Thursday";data.reviewTime=data.reviewTime||"7:30 PM";data.strategy=data.strategy||"avalanche";data.seasonId="establish";data.seasonName="Establish";data.seasonSince="June 2026";
     data.accounts=[
       {id:"demo_chase",name:"Chase Freedom",type:"Credit Card",balance:5427,apr:24.99,min:135,statementDay:"15th",note:"",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:24.99,archived:false,paidOff:false,completedAt:null},
       {id:"demo_citi",name:"Citi",type:"Credit Card",balance:3820,apr:0,min:92,statementDay:"9th",note:"Promo rate",promoEnabled:true,promoApr:0,promoExpires:new Date(Date.now()+86400000*80).toISOString().slice(0,10),standardApr:24.49,archived:false,paidOff:false,completedAt:null},
@@ -313,7 +380,12 @@
   }
 
   const actions={
-    finishSetup(){data.reviewDay=UI.byId("setupDay").value;data.reviewTime=UI.byId("setupTime").value||"7:30 PM";data.strategy=UI.byId("setupStrategy").value;data.setupComplete=true;saveRender("command");},
+    startSeasonReflection(){data.onboarding.step="discover";saveRender("onboarding");},
+    recommendCurrentSeason(){data.onboarding.answers={q1:UI.byId("seasonQ1").value,q2:UI.byId("seasonQ2").value,q3:UI.byId("seasonQ3").value};data.onboarding.recommendedSeason=recommendSeason();data.onboarding.step="recommendation";saveRender("onboarding");},
+    acceptSeasonRecommendation(){setSeason(data.onboarding.recommendedSeason||"establish");data.onboarding.step="setup";saveRender("onboarding");},
+    chooseAnotherSeason(){data.onboarding.step="chooseSeason";saveRender("onboarding");},
+    selectSeason(node){setSeason(node.dataset.season||"establish");data.onboarding.step="setup";saveRender("onboarding");},
+    finishSetup(){data.reviewDay=UI.byId("setupDay").value;data.reviewTime=UI.byId("setupTime").value||"7:30 PM";data.strategy=UI.byId("setupStrategy").value;data.setupComplete=true;if(!data.seasonSince)data.seasonSince=new Date().toLocaleDateString(undefined,{month:"long",year:"numeric"});saveRender("command");},
     startReview(){if(!activeAccounts().length){renderAccountForm();return;}if(data.review.status==="complete"){render("review");return;}if(data.review.status!=="inProgress"&&data.review.status!=="allUpdated"&&data.review.status!=="paidOffPrompt"){data.review={status:"ready",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};}saveRender("review");},
     beginNewReview(){data.review={status:"inProgress",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};saveRender("review");},
     cancelReview(){saveRender("command");},

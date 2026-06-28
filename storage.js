@@ -6,8 +6,10 @@
     reviewDay:"Thursday",
     reviewTime:"7:30 PM",
     strategy:"avalanche",
-    seasonName:"Debt Freedom",
+    seasonId:"establish",
+    seasonName:"Establish",
     seasonSince:"June 2026",
+    onboarding:{step:"welcome",answers:{},recommendedSeason:"establish"},
     startingAmount:0,
     accounts:[],
     snapshots:[],
@@ -31,7 +33,11 @@
     paidOff:Boolean(account.paidOff),
     completedAt:account.completedAt || null
   };}
-  function normalize(data){const base=Object.assign(cloneBlank(),data||{});base.strategy=base.strategy || "avalanche";base.accounts=(base.accounts||[]).map(normalizeAccount);base.snapshots=base.snapshots || base.reviewHistory || [];
+  function normalize(data){const base=Object.assign(cloneBlank(),data||{});base.strategy=base.strategy || "avalanche";
+    base.seasonId=base.seasonId || "establish";
+    base.seasonName=base.seasonName || "Establish";
+    base.onboarding=Object.assign({step:"welcome",answers:{},recommendedSeason:"establish"},base.onboarding||{});
+    base.onboarding.answers=base.onboarding.answers||{};base.accounts=(base.accounts||[]).map(normalizeAccount);base.snapshots=base.snapshots || base.reviewHistory || [];
     if(!base.review)base.review=cloneBlank().review;
     base.review=Object.assign(cloneBlank().review,base.review);base.review.notes=base.review.notes||{};
     if(base.setupComplete===undefined)base.setupComplete=Boolean(base.accounts.length);

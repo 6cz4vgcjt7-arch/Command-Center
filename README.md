@@ -1,22 +1,26 @@
-# Seasons v0.9
+# Seasons
 
-A weekly financial habit app that helps people build lasting financial achievements.
+**Seasons is a weekly financial habit app that helps people build lasting financial achievements through intentional observation, reflection, and steady progress.**
 
-## What changed in v0.9
+This is the **v1.0 Founder Release** of the web prototype. It is intended for founder testing and product validation before rebuilding the experience natively.
 
-- Added the Reflection Engine.
-- After entering a balance, Seasons quietly shows what changed since the last review.
-- Added the `This Week` reflection screen before Week Closed.
-- Weekly snapshots now preserve observations and review notes.
-- Added core product documents: `VISION.md`, `CONSTITUTION.md`, and `DESIGN_SYSTEM.md`.
-- Preserved v0.8 identity direction and behavior.
+## What v1.0 includes
 
-## Product principle
-
-Seasons never judges. Seasons observes.
-
-Every Weekly Review should help the user notice what changed, not just record what changed.
+- First-launch onboarding: **Discover Your Current Season**
+- Four Financial Seasons: **Establish, Grow, Steward, Preserve**
+- Account management with promotional APR tracking
+- Weekly Review flow
+- Reflection Engine: balance changes, weekly observations, and review summaries
+- Completed accounts
+- Version/build display and developer tools
+- Local-only storage in the browser
 
 ## Privacy
 
-This prototype stores data locally in the browser using localStorage. No bank connections, no analytics, no account numbers, and no personal financial data are included in the codebase.
+No bank connections. No login. No analytics. No personal data included in this repository.
+
+During this prototype stage, use demo or approximate data until the privacy and storage behavior has been reviewed for real financial use.
+
+## Version
+
+v1.0 · Build 100
