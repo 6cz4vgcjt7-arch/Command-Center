@@ -1,5 +1,17 @@
-# Command Center v2.0 Modular
+# Seasons v0.1
 
-Modular PWA codebase. No embedded personal financial data.
+A local-first PWA prototype evolved from Command Center.
 
-Files: index.html, style.css, storage.js, engine.js, ui.js, app.js, sw.js, manifest.webmanifest, icon.svg.
+## What's included
+
+- Command screen
+- Weekly Review flow
+- One-account-at-a-time balance entry
+- Four-segment Seasons cycle
+- Week Closed screen
+- Accounts and Settings
+- Local browser storage only
+
+## Privacy
+
+No personal data is included in this repository. The app stores user-entered data only in the browser's local storage unless exported by the user.

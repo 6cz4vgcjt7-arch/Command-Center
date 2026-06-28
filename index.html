@@ -1,9 +1,34 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0F1115"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><title>Command Center</title></head><body><div class="app"><header><h1>COMMAND CENTER <span>v2.0</span></h1></header>
-<section id="onboarding" class="screen"><div class="ringwrap"><div class="ring" style="--pct:0%"><b>0%</b></div></div><div class="card"><div class="label">Welcome</div><div class="big">Build your financial mission.</div><div class="sub">Local only. No bank links. No AI. No account numbers.</div></div><div class="card"><div class="label">Mission setup</div><select id="setupMission"><option>Eliminate High Interest Debt</option><option>Build Emergency Fund</option><option>Save for a Project</option></select><input id="setupStartingAmount" type="number" inputmode="decimal" placeholder="Starting mission amount"><input id="setupMonthlyExtra" type="number" inputmode="decimal" placeholder="Monthly extra payment"></div><button class="btn" data-action="finishSetup">Start Command Center</button></section>
-<section id="home" class="screen active"><div class="ringwrap"><div class="ring" id="ring" style="--pct:0%"><b id="pct">0%</b></div></div><div class="sub center">Mission Progress</div><div class="card"><div class="label">Best Decision Today</div><div class="big" id="todayDecision">Set up</div><div class="sub" id="todayWhy">Add accounts and plan assumptions.</div></div><div class="row"><div class="card"><div class="label">Debt-Free</div><div class="big" id="forecastDateHome">—</div><div class="sub">forecast</div></div><div class="card"><div class="label">Interest</div><div class="big green" id="interestHome">—</div><div class="sub">estimated</div></div></div><div class="card"><div class="label">Plan Status</div><div class="big" id="status">Ready</div><div class="sub" id="statusSub">Add accounts to begin.</div></div><button class="btn" data-action="showWhy">Why?</button><button class="btn btn2" data-action="startReview">Monthly Review</button></section>
-<section id="accounts" class="screen"><div class="card"><div class="label">Accounts</div><div class="big">Manual setup</div><div class="sub">Nickname + optional last 4 only.</div></div><div id="accountList"></div><div class="card"><div class="label">Add account</div><input id="aName" placeholder="Account name"><input id="aLast4" maxlength="4" placeholder="Last 4, optional"><input id="aBalance" type="number" inputmode="decimal" placeholder="Balance"><input id="aApr" type="number" inputmode="decimal" placeholder="APR"><input id="aMin" type="number" inputmode="decimal" placeholder="Minimum payment"><input id="aPromoRate" type="number" inputmode="decimal" placeholder="Promo APR, optional"><input id="aPromoEnd" type="date"><button class="btn" data-action="addAccount">Save Account</button></div></section>
-<section id="plan" class="screen"><div class="card"><div class="label">Assumptions</div><div class="big">Plan inputs</div><div class="sub">These power the forecast.</div></div><div class="card"><div class="label">Monthly capacity</div><input id="monthlyExtra" type="number" inputmode="decimal" placeholder="Extra monthly payment"><input id="futureDate" type="date"><input id="futureIncrease" type="number" inputmode="decimal" placeholder="Future monthly increase"></div><div class="card"><div class="label">One-time cash event</div><input id="bonusDate" type="date"><input id="bonusAmount" type="number" inputmode="decimal" placeholder="Bonus amount"></div><button class="btn" data-action="savePlan">Save Plan</button></section>
-<section id="forecast" class="screen"><div class="card"><div class="label">Current Plan</div><div class="big" id="forecastDate">—</div><div class="sub" id="forecastDetail">Add assumptions for a forecast.</div></div><div class="card"><div class="label">Strategy Comparison</div><div id="strategyList"></div></div><div class="card"><div class="label">Opportunity</div><div class="big" id="opportunityTitle">—</div><div class="sub" id="opportunityText">Add payment capacity to see opportunities.</div></div></section>
-<section id="why" class="screen"><div class="card"><div class="label">Recommendation</div><div class="big" id="recCard">Add account</div><div class="sub" id="recReason">No active accounts yet.</div></div><div class="card"><div class="label">Why this decision?</div><div id="whyList"></div></div><div class="card"><div class="label">Confidence</div><div class="big" id="confidence">—</div><div class="sub" id="confidenceText">More assumptions improve confidence.</div></div><button class="btn btn2" data-screen="home">Back Home</button></section>
-<section id="review" class="screen"><div class="big">What changed since last month?</div><div class="sub">Select only what needs updating.</div><div id="reviewChecks"></div><button class="btn" data-action="continueReview">Continue</button></section><section id="entry" class="screen"><div class="big">Update selected items</div><div id="entryFields"></div><button class="btn" data-action="saveReview">Save Monthly Review</button></section><section id="settings" class="screen"><div class="card"><div class="label">Privacy</div><div class="big">High</div><div class="sub">Data stays in this browser unless exported.</div></div><button class="btn btn2" data-action="exportData">Export Backup</button><button class="btn btn2" data-action="resetAll">Reset Local Data</button></section>
-<nav class="nav"><button class="active" data-screen="home"><span class="dot"></span>Home</button><button data-screen="accounts"><span class="dot"></span>Accounts</button><button data-screen="plan"><span class="dot"></span>Plan</button><button data-screen="forecast"><span class="dot"></span>Forecast</button><button data-screen="settings"><span class="dot"></span>Settings</button></nav></div><script src="storage.js"></script><script src="engine.js"></script><script src="ui.js"></script><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#FAF8F2">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>Seasons</title>
+</head>
+<body>
+  <div class="app">
+    <main>
+      <section id="onboarding" class="screen"></section>
+      <section id="command" class="screen active"></section>
+      <section id="review" class="screen"></section>
+      <section id="accounts" class="screen"></section>
+      <section id="settings" class="screen"></section>
+    </main>
+
+    <nav class="nav" aria-label="Primary navigation">
+      <button class="active" data-screen="command" aria-label="Command"><span class="navIcon">⌂</span><span>Command</span></button>
+      <button data-screen="review" aria-label="Review"><span class="navIcon">□</span><span>Review</span></button>
+      <button data-screen="accounts" aria-label="Accounts"><span class="navIcon">▭</span><span>Accounts</span></button>
+      <button data-screen="settings" aria-label="Settings"><span class="navIcon">⚙</span><span>Settings</span></button>
+    </nav>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="engine.js"></script>
+  <script src="ui.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
