@@ -1,17 +1,16 @@
-# Seasons v0.7
+# Seasons v0.8
 
 A local-first weekly financial review prototype.
 
-## What's new in v0.7
+## What's new in v0.8
 
-- Added version and build number in Settings
-- Added update check and reload helper for GitHub Pages testing
-- Added hidden Developer mode: tap Version five times
-- Added demo data loader and cache clearing tools in Developer mode
-- Refined Weekly Review account entry into a quieter ledger-style screen
-- Refined the four-segment cycle styling
-- Added page-like transition motion foundation
-- Preserved v0.6 account, promo APR, paid-off account, and progress engine behavior
+- Locked the open-arc Seasons identity direction: no dots, four refined arcs, centered leaf
+- Updated the progress cycle so completed segments subtly darken and gain line weight
+- Refined the leaf mark toward the calmer Seasons logo direction
+- Added a quiet splash moment with the cycle + Seasons wordmark
+- Updated typography toward Iowan Old Style for signature display moments and SF Pro for UI text
+- Reworked bottom navigation icons with a calmer, consistent line style
+- Preserved v0.7 Weekly Review, paid-off account, promo APR, developer mode, and update behavior
 
 ## Privacy
 

@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION="v0.7";
-  const APP_BUILD=70;
+  const APP_VERSION="v0.8";
+  const APP_BUILD=80;
   let updateInfo=null;
   let versionTapCount=0;
   let data=window.CCStorage.load();
@@ -220,7 +220,7 @@
   function renderDayPicker(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Weekly Review Day</div><span></span></div><div class="card accountList">${days.map(day=>`<button class="settingChoice ${data.reviewDay===day?"selected":""}" data-action="setReviewDay" data-value="${day}"><span>${day}</span>${data.reviewDay===day?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
   function renderStrategyPicker(){const strategies=[{value:"avalanche",label:"Highest Interest First",sub:"Save more by paying interest first."},{value:"snowball",label:"Smallest Balance First",sub:"Build momentum through early wins."}];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Focus Strategy</div><span></span></div><div class="card accountList">${strategies.map(strategy=>`<button class="settingChoice ${data.strategy===strategy.value?"selected":""}" data-action="setStrategy" data-value="${strategy.value}"><span><b>${strategy.label}</b><span class="sub">${strategy.sub}</span></span>${data.strategy===strategy.value?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
 
-  function wirePromoForm(){const checkbox=UI.byId("formPromo");const fields=UI.byId("promoFields");const expires=UI.byId("formPromoExpires");const reviews=UI.byId("promoReviews");if(checkbox&&fields){checkbox.addEventListener("change",()=>fields.classList.toggle("hidden",!checkbox.checked));}if(expires&&reviews){expires.addEventListener("input",()=>{const n=E.weeklyReviewsUntil(expires.value);reviews.textContent=n===null?"Add an expiration date to see weeks remaining.":`${n} weekly review${n===1?"":"s"} remaining`;});}}
+  function wirePromoForm(){const checkbox=UI.byId("formPromo");const fields=UI.byId("promoFields");const expires=UI.byId("formPromoExpires");const reviews=UI.byId("promoReviews");if(checkbox&&fields){checkbox.addEventListener("change",()=>fields.classList.toggle("hidden",!checkbox.checked));}if(expires&&reviews){expires.addEventListener("input",()=>{const n=E.weeklyReviewsUntil(expires.value);reviews.textContent=n===null?"Add an expiration date to see weeks remaining.":`${n} week${n===1?"":"s"} remaining`;});}}
 
   function advanceReview(){const accounts=reviewAccounts();if(data.review.index>=accounts.length-1){data.review.status="allUpdated";}else{data.review.index+=1;data.review.status="inProgress";}data.review.pendingPaidOff=null;saveRender("review");}
   function completeAccount(account){account.balance=0;account.paidOff=true;account.completedAt=new Date().toISOString();}
@@ -286,5 +286,6 @@
   document.addEventListener("click",handleClick);
   if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
   render(data.setupComplete?"command":"onboarding");
+  setTimeout(()=>document.getElementById("splash")?.classList.add("hiddenSplash"),900);
   setTimeout(()=>checkForUpdate(true),800);
 })();
