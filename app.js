@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION="v1.0";
-  const APP_BUILD=100;
+  const APP_VERSION="v1.0.1";
+  const APP_BUILD=101;
   let updateInfo=null;
   let versionTapCount=0;
   let data=window.CCStorage.load();
@@ -112,15 +112,15 @@
     const promoLine=promo?`<div class="promoNote">${UI.escapeHtml(promo.name)} promo expires in ${promo.reviewsRemaining} week${promo.reviewsRemaining===1?"":"s"}</div>`:"";
     const progress=E.progressStatus(data);
     screens.command.innerHTML=`
-      <div class="topbar brandOnly"><h1 class="brand">SEASONS</h1></div>
-      <div class="dateBlock"><div class="weekday">${t.weekday}</div><div class="date">${t.date}</div></div>
+      <div class="commandLogo">${UI.cycle(0,"tiny")}</div>
+      <div class="dateBlock compactDate"><div class="weekday">${t.weekday}</div><div class="date">${t.date}</div></div>
       ${updateInfo?`<div class="updateBanner"><div><b>New version available</b><div class="sub">${UI.escapeHtml(updateInfo.version || "Update")}</div></div><button class="smallBtn" data-action="reloadUpdate">Reload</button></div>`:""}
-      <div class="card">
+      <div class="card commandCard primaryReview">
         <div class="row"><div><div class="value">Weekly Review</div><div class="status">${reviewComplete?"Complete":data.review?.status==="inProgress"?"In Progress":data.review?.status==="allUpdated"?"Ready to Close":"Ready"}</div><div class="sub">${reviewComplete?"Next Thursday":`${data.reviewDay} • ${data.reviewTime}`}</div></div><div class="chev">›</div></div>
-        <button class="btn" data-action="startReview">${data.review?.status==="inProgress"?"Continue Weekly Review":data.review?.status==="allUpdated"?"Close Week":reviewComplete?"View This Week":"Start Weekly Review"}</button>
+        <button class="btn compactBtn" data-action="startReview">${data.review?.status==="inProgress"?"Continue Weekly Review":data.review?.status==="allUpdated"?"Close Week":reviewComplete?"View This Week":"Start Weekly Review"}</button>
       </div>
-      <div class="card" data-screen="accounts"><div class="label">Focus</div><div class="value">${f?UI.escapeHtml(f.name):completedAccounts().length?"Season Complete":"Add Account"}</div><div class="spacer"></div><div class="value">${f?UI.money(f.balance):"—"}</div></div>
-      <div class="card"><div class="row"><div><div class="label">Season</div><div class="value">${season(data.seasonId).icon} ${UI.escapeHtml(data.seasonName)}</div><div class="sub">Since ${UI.escapeHtml(data.seasonSince)} • ${progress}</div>${promoLine}</div><div class="chev">›</div></div></div>`;
+      <div class="card commandCard tappableCard" data-action="showFocusDetail"><div class="row"><div><div class="label">Focus</div><div class="value">${f?UI.escapeHtml(f.name):completedAccounts().length?"Season Complete":"Add Account"}</div></div><div><div class="value alignRight">${f?UI.money(f.balance):"—"}</div><div class="chev compactChev">›</div></div></div></div>
+      <div class="card commandCard tappableCard" data-action="showSeasonDetail"><div class="row"><div><div class="label">Season</div><div class="value">${season(data.seasonId).icon} ${UI.escapeHtml(data.seasonName)}</div><div class="sub">Since ${UI.escapeHtml(data.seasonSince)} • ${progress}</div>${promoLine}</div><div class="chev">›</div></div></div>`;
   }
 
   function reviewAccounts(){return E.reviewOrder(data);}
@@ -175,6 +175,25 @@
     return "Your review is complete and your records are current.";
   }
 
+  function renderSeasonDetail(){
+    const current=season(data.seasonId);
+    screens.command.innerHTML=`
+      <div class="reviewHeader"><button class="back" data-action="backToCommand">‹</button><div class="reviewTitle">Current Season</div><button class="smallBtn" data-action="showSeasonChooser">Change</button></div>
+      <div class="card seasonDetailHero"><div class="seasonIcon bigSeason">${current.icon}</div><div><div class="value">${UI.escapeHtml(current.name)}</div><div class="sub">${UI.escapeHtml(current.line)}</div><p class="sub">${UI.escapeHtml(current.description)}</p></div></div>
+      <p class="sub">Financial seasons are periods of focus, not levels to complete. Your season can change. Your weekly habit remains the same.</p>
+      <div class="sectionLabel">The Four Financial Seasons</div>
+      <div class="accountList">${Object.entries(SEASONS).map(([id,s])=>`<div class="accountRow ${id===data.seasonId?"selectedSeasonRow":""}"><div class="accountMeta"><div>${s.icon} ${UI.escapeHtml(s.name)}</div><div class="sub">${UI.escapeHtml(s.line)}</div></div>${id===data.seasonId?'<span class="check miniCheck">✓</span>':''}</div>`).join("")}</div>`;
+    show("command");
+  }
+
+  function renderSeasonChooser(){
+    screens.command.innerHTML=`
+      <div class="reviewHeader"><button class="back" data-action="showSeasonDetail">‹</button><div class="reviewTitle">Choose Season</div><span></span></div>
+      <p class="sub">Choose the season that best describes your current focus.</p>
+      <div class="seasonGrid">${Object.entries(SEASONS).map(([id,s])=>`<button class="seasonCard ${data.seasonId===id?"selectedSeason":""}" data-action="setSeasonFromCommand" data-season="${id}"><span class="seasonIcon">${s.icon}</span><span><b>${UI.escapeHtml(s.name)}</b><span class="sub">${UI.escapeHtml(s.line)}</span></span></button>`).join("")}</div>`;
+    show("command");
+  }
+
   function renderReview(){
     const accounts=reviewAccounts();
     if(!accounts.length){
@@ -207,8 +226,9 @@
         <div class="ledgerLine"></div>
         <div><div class="label">Today</div><div class="ledgerWrap"><span>$</span><input id="todayBalance" inputmode="decimal" type="number" value="${Number(draft)||0}" aria-label="Today balance"></div></div>
       </div>
+      <div id="reviewDeltaPreview" class="inlineDelta">${Math.abs(accountDelta(account,draft))>=1?changeLine(accountDelta(account,draft)):""}</div>
       <button class="btn reviewContinue" data-action="saveAccountReview">Continue</button>`;
-    setTimeout(()=>{const input=UI.byId("todayBalance");if(input){input.focus();input.select();}},50);
+    setTimeout(()=>wireReviewBalanceInput(account),50);
   }
 
   function renderAccountReflection(){
@@ -351,6 +371,20 @@
   function renderDayPicker(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Weekly Review Day</div><span></span></div><div class="card accountList">${days.map(day=>`<button class="settingChoice ${data.reviewDay===day?"selected":""}" data-action="setReviewDay" data-value="${day}"><span>${day}</span>${data.reviewDay===day?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
   function renderStrategyPicker(){const strategies=[{value:"avalanche",label:"Highest Interest First",sub:"Save more by paying interest first."},{value:"snowball",label:"Smallest Balance First",sub:"Build momentum through early wins."}];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Focus Strategy</div><span></span></div><div class="card accountList">${strategies.map(strategy=>`<button class="settingChoice ${data.strategy===strategy.value?"selected":""}" data-action="setStrategy" data-value="${strategy.value}"><span><b>${strategy.label}</b><span class="sub">${strategy.sub}</span></span>${data.strategy===strategy.value?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
 
+  function wireReviewBalanceInput(account){
+    const input=UI.byId("todayBalance");
+    const preview=UI.byId("reviewDeltaPreview");
+    if(!input)return;
+    const update=()=>{
+      const delta=accountDelta(account,Number(input.value)||0);
+      if(preview){preview.innerHTML=Math.abs(delta)>=1?changeLine(delta):"";}
+    };
+    input.addEventListener("input",update);
+    input.focus();
+    input.select();
+    update();
+  }
+
   function wirePromoForm(){const checkbox=UI.byId("formPromo");const fields=UI.byId("promoFields");const expires=UI.byId("formPromoExpires");const reviews=UI.byId("promoReviews");if(checkbox&&fields){checkbox.addEventListener("change",()=>fields.classList.toggle("hidden",!checkbox.checked));}if(expires&&reviews){expires.addEventListener("input",()=>{const n=E.weeklyReviewsUntil(expires.value);reviews.textContent=n===null?"Add an expiration date to see weeks remaining.":`${n} week${n===1?"":"s"} remaining`;});}}
 
   function advanceReview(){const accounts=reviewAccounts();if(data.review.index>=accounts.length-1){data.review.status="allUpdated";}else{data.review.index+=1;data.review.status="inProgress";}data.review.pendingPaidOff=null;data.review.pendingReflection=null;saveRender("review");}
@@ -386,6 +420,11 @@
     chooseAnotherSeason(){data.onboarding.step="chooseSeason";saveRender("onboarding");},
     selectSeason(node){setSeason(node.dataset.season||"establish");data.onboarding.step="setup";saveRender("onboarding");},
     finishSetup(){data.reviewDay=UI.byId("setupDay").value;data.reviewTime=UI.byId("setupTime").value||"7:30 PM";data.strategy=UI.byId("setupStrategy").value;data.setupComplete=true;if(!data.seasonSince)data.seasonSince=new Date().toLocaleDateString(undefined,{month:"long",year:"numeric"});saveRender("command");},
+    showFocusDetail(){const f=focus();if(f){renderAccountDetail(f);}else{render("accounts");}},
+    showSeasonDetail(){renderSeasonDetail();},
+    showSeasonChooser(){renderSeasonChooser();},
+    backToCommand(){render("command");},
+    setSeasonFromCommand(node){setSeason(node.dataset.season||"establish");save();renderSeasonDetail();},
     startReview(){if(!activeAccounts().length){renderAccountForm();return;}if(data.review.status==="complete"){render("review");return;}if(data.review.status!=="inProgress"&&data.review.status!=="allUpdated"&&data.review.status!=="paidOffPrompt"){data.review={status:"ready",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};}saveRender("review");},
     beginNewReview(){data.review={status:"inProgress",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};saveRender("review");},
     cancelReview(){saveRender("command");},

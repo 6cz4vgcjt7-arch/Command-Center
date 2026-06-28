@@ -24,3 +24,11 @@ During this prototype stage, use demo or approximate data until the privacy and 
 ## Version
 
 v1.0 · Build 100
+
+
+## v1.0.1 Founder Fix Pass
+- Focus card opens the current Focus account detail.
+- Season card opens a Current Season detail page.
+- Weekly Review now shows immediate balance change feedback as you type and after Continue.
+- Command screen spacing tightened to reduce unnecessary scrolling.
+- Version/build bumped to v1.0.1 / Build 101 for cache verification.
