@@ -117,3 +117,13 @@ html,body{font-family:var(--body)}
 .seasonNotice,.quietMessage{border-color:rgba(95,118,95,.24);background:rgba(255,255,255,.58)}
 .quietMessage .value{font-family:var(--display);font-size:24px;letter-spacing:-.02em;margin-bottom:8px}
 .seasonNotice .btn{margin-top:12px}
+
+/* v1.1.1 interaction polish */
+.commandReflection{font-family:var(--display);font-size:18px;line-height:1.35;color:var(--sage-dark);text-align:center;margin:-2px auto 14px;max-width:300px}
+.screenReflection{font-family:var(--display);font-size:18px;line-height:1.35;color:var(--muted);text-align:center;margin:18px 16px 4px}
+.accountIcon{display:inline-block;margin-right:8px;vertical-align:1px}
+.accountTypeCard{margin-top:6px}
+.gentleReflection{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:16px;background:rgba(247,245,239,.7)}
+.formFooter{position:static!important;bottom:auto!important;padding:12px 0 4px!important;background:transparent!important;margin-top:4px!important}
+#debtFields.hidden,#promoCard.hidden{display:none!important}
+@media (max-height:760px){.commandReflection{font-size:16px;margin-bottom:8px}.compactDate .weekday{font-size:18px}.compactDate .date{font-size:32px}.commandCard{padding:14px 16px}.primaryReview .status{font-size:24px}.primaryReview .value{font-size:23px}}
