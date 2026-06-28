@@ -33,7 +33,9 @@
   }
 
   function renderCommand(){
-    const t=UI.todayParts();const f=focus();const status=E.progressStatus(data);const reviewComplete=data.review?.status==="complete";
+    const t=UI.todayParts();const f=focus();const reviewComplete=data.review?.status==="complete";
+    const promo=E.soonestPromo(data);
+    const promoLine=promo?`<div class="promoNote">${UI.escapeHtml(promo.name)} promo expires in ${promo.reviewsRemaining} weekly review${promo.reviewsRemaining===1?"":"s"}</div>`:"";
     screens.command.innerHTML=`
       <div class="topbar brandOnly"><h1 class="brand">SEASONS</h1></div>
       <div class="dateBlock"><div class="weekday">${t.weekday}</div><div class="date">${t.date}</div></div>
@@ -41,12 +43,18 @@
         <div class="row"><div><div class="value">Weekly Review</div><div class="status">${reviewComplete?"Complete":data.review?.status==="inProgress"?"In Progress":"Ready"}</div><div class="sub">${reviewComplete?"Next Thursday":`${data.reviewDay} • ${data.reviewTime}`}</div></div><div class="chev">›</div></div>
         <button class="btn" data-action="startReview">${data.review?.status==="inProgress"?"Continue Weekly Review":reviewComplete?"View This Week":"Start Weekly Review"}</button>
       </div>
-      <div class="card" data-screen="accounts"><div class="label">Focus</div><div class="value">${f?UI.escapeHtml(f.name):"Add Account"}</div><div class="spacer"></div><div class="label">Last Reviewed</div><div class="value">${f?UI.money(f.balance):"—"}</div></div>
-      <div class="card"><div class="label">Progress</div><div class="value">${status}</div></div>
-      <div class="card"><div class="row"><div><div class="label">Season</div><div class="value">${UI.escapeHtml(data.seasonName)}</div><div class="sub">Since ${UI.escapeHtml(data.seasonSince)}</div></div><div class="chev">›</div></div></div>`;
+      <div class="card" data-screen="accounts"><div class="label">Focus</div><div class="value">${f?UI.escapeHtml(f.name):"Add Account"}</div><div class="spacer"></div><div class="value">${f?UI.money(f.balance):"—"}</div></div>
+      <div class="card"><div class="row"><div><div class="label">Season</div><div class="value">${UI.escapeHtml(data.seasonName)}</div><div class="sub">Since ${UI.escapeHtml(data.seasonSince)}</div>${promoLine}</div><div class="chev">›</div></div></div>`;
   }
 
   function reviewAccounts(){return E.reviewOrder(data);}
+  function promoSummary(account){
+    if(!account?.promoEnabled)return "";
+    const apr=`${Number(account.promoApr||0).toFixed(2)}% promo`;
+    if(!account.promoExpires)return apr;
+    const reviews=E.weeklyReviewsUntil(account.promoExpires);
+    return reviews===null?apr:`${apr}, ${reviews} review${reviews===1?"":"s"} left`;
+  }
   function renderReview(){
     const accounts=reviewAccounts();
     if(!accounts.length){screens.review.innerHTML=`<div class="reviewHeader"><button class="back" data-screen="command">‹</button><div class="reviewTitle">Weekly Review</div><span></span></div><div class="empty">Add your first account to begin.</div><button class="btn" data-screen="accounts">Add Account</button>`;return;}
@@ -90,20 +98,31 @@
 
   function renderAccounts(){const accounts=activeAccounts();const f=focus();screens.accounts.innerHTML=`
     <div class="reviewHeader"><div class="screenTitle">Accounts</div><button class="smallBtn" data-action="showAddAccount">＋</button></div>
-    <div class="accountList">${accounts.length?accounts.map(a=>`<div class="accountRow" data-action="editAccount" data-id="${a.id}"><div class="accountMeta"><div>${f&&f.id===a.id?`<span class="focusDot"></span>`:""}${UI.escapeHtml(a.name)}</div><div class="sub">${UI.escapeHtml(a.type||"Account")}</div></div><div class="row"><span>${UI.money(a.balance)}</span></div></div>`).join(""):`<div class="empty">No accounts yet.</div>`}</div>
+    <div class="accountList">${accounts.length?accounts.map(a=>{const promo=promoSummary(a);return `<div class="accountRow" data-action="editAccount" data-id="${a.id}"><div class="accountMeta"><div>${f&&f.id===a.id?`<span class="focusDot"></span>`:""}${UI.escapeHtml(a.name)}</div><div class="sub">${UI.escapeHtml(a.type||"Account")}${promo?` • ${promo}`:""}</div></div><div class="row"><span>${UI.money(a.balance)}</span></div></div>`}).join(""):`<div class="empty">No accounts yet.</div>`}</div>
     <button class="btn secondary" data-action="showAddAccount">Add Account</button>`;}
 
-  function renderAccountForm(account=null){const isEdit=Boolean(account);screens.accounts.innerHTML=`
+  function renderAccountForm(account=null){const isEdit=Boolean(account);const promoOn=Boolean(account?.promoEnabled);screens.accounts.innerHTML=`
     <div class="reviewHeader"><button class="back" data-action="backToAccounts">‹</button><div class="reviewTitle">${isEdit?"Edit Account":"Add Account"}</div><button class="smallBtn" data-action="saveAccount" data-id="${account?.id||""}">Save</button></div>
     <div class="card">
       <label class="label" for="formName">Account Name</label><input id="formName" value="${UI.escapeHtml(account?.name||"")}" placeholder="e.g., Chase Freedom">
       <label class="label" for="formType">Account Type</label><select id="formType"><option ${account?.type==="Credit Card"?"selected":""}>Credit Card</option><option ${account?.type==="Auto Loan"?"selected":""}>Auto Loan</option><option ${account?.type==="Personal Loan"?"selected":""}>Personal Loan</option><option ${account?.type==="Student Loan"?"selected":""}>Student Loan</option><option ${account?.type==="HELOC"?"selected":""}>HELOC</option></select>
       <label class="label" for="formBalance">Current Balance</label><input id="formBalance" type="number" inputmode="decimal" value="${Number(account?.balance)||0}">
-      <label class="label" for="formApr">APR</label><input id="formApr" type="number" inputmode="decimal" value="${Number(account?.apr)||0}">
+      <label class="label" for="formApr">Standard APR</label><input id="formApr" type="number" inputmode="decimal" value="${Number(account?.apr)||0}">
       <label class="label" for="formMin">Minimum Payment</label><input id="formMin" type="number" inputmode="decimal" value="${Number(account?.min)||0}">
+    </div>
+    <div class="card promoCard">
+      <label class="toggleRow"><span><span class="label">Promotional APR</span><span class="sub">Track intro rates and expiration dates.</span></span><input id="formPromo" type="checkbox" ${promoOn?"checked":""}></label>
+      <div id="promoFields" class="${promoOn?"":"hidden"}">
+        <label class="label" for="formPromoApr">Current Promo APR</label><input id="formPromoApr" type="number" inputmode="decimal" value="${Number(account?.promoApr)||0}">
+        <label class="label" for="formPromoExpires">Expires</label><input id="formPromoExpires" type="date" value="${UI.escapeHtml(account?.promoExpires||"")}">
+        <label class="label" for="formStandardApr">Standard APR After</label><input id="formStandardApr" type="number" inputmode="decimal" value="${Number(account?.standardApr||account?.apr)||0}">
+        <div class="helper" id="promoReviews">${account?.promoExpires?`${E.weeklyReviewsUntil(account.promoExpires)} weekly review${E.weeklyReviewsUntil(account.promoExpires)===1?"":"s"} remaining`:"Add an expiration date to see weekly reviews remaining."}</div>
+      </div>
+    </div>
+    <div class="card">
       <label class="label" for="formNote">Notes</label><textarea id="formNote" placeholder="Optional">${UI.escapeHtml(account?.note||"")}</textarea>
     </div>
-    ${isEdit?`<button class="btn danger" data-action="archiveAccount" data-id="${account.id}">Archive Account</button>`:""}`;show("accounts");}
+    ${isEdit?`<button class="btn danger" data-action="archiveAccount" data-id="${account.id}">Archive Account</button>`:""}`;show("accounts");setTimeout(()=>wirePromoForm(),0);}
 
   function renderSettings(){screens.settings.innerHTML=`
     <div class="screenTitle">Settings</div>
@@ -124,6 +143,12 @@
     <div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Focus Strategy</div><span></span></div>
     <div class="card accountList">${strategies.map(strategy=>`<button class="settingChoice ${data.strategy===strategy.value?"selected":""}" data-action="setStrategy" data-value="${strategy.value}"><span><b>${strategy.label}</b><span class="sub">${strategy.sub}</span></span>${data.strategy===strategy.value?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
 
+  function wirePromoForm(){
+    const checkbox=UI.byId("formPromo");const fields=UI.byId("promoFields");const expires=UI.byId("formPromoExpires");const reviews=UI.byId("promoReviews");
+    if(checkbox&&fields){checkbox.addEventListener("change",()=>fields.classList.toggle("hidden",!checkbox.checked));}
+    if(expires&&reviews){expires.addEventListener("input",()=>{const n=E.weeklyReviewsUntil(expires.value);reviews.textContent=n===null?"Add an expiration date to see weekly reviews remaining.":`${n} weekly review${n===1?"":"s"} remaining`;});}
+  }
+
   const actions={
     finishSetup(){data.reviewDay=UI.byId("setupDay").value;data.reviewTime=UI.byId("setupTime").value||"7:30 PM";data.strategy=UI.byId("setupStrategy").value;data.setupComplete=true;saveRender("command");},
     startReview(){if(!activeAccounts().length){renderAccountForm();return;}if(data.review.status==="complete"){render("review");return;}if(data.review.status!=="inProgress"&&data.review.status!=="allUpdated"){data.review={status:"ready",index:0,draft:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday"};}saveRender("review");},
@@ -135,7 +160,7 @@
     showAddAccount(){renderAccountForm();},
     editAccount(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account)renderAccountForm(account);},
     backToAccounts(){renderAccounts();show("accounts");},
-    saveAccount(node){const id=node.dataset.id;let account=data.accounts.find(a=>a.id===id);if(!account){account={id:`acct_${Date.now()}`,archived:false};data.accounts.push(account);}account.name=UI.byId("formName").value||"Account";account.type=UI.byId("formType").value;account.balance=Number(UI.byId("formBalance").value)||0;account.apr=Number(UI.byId("formApr").value)||0;account.min=Number(UI.byId("formMin").value)||0;account.note=UI.byId("formNote").value||"";if(!data.startingAmount)data.startingAmount=E.totalBalance(activeAccounts(data));saveRender("accounts");},
+    saveAccount(node){const id=node.dataset.id;let account=data.accounts.find(a=>a.id===id);if(!account){account={id:`acct_${Date.now()}`,archived:false};data.accounts.push(account);}account.name=UI.byId("formName").value||"Account";account.type=UI.byId("formType").value;account.balance=Number(UI.byId("formBalance").value)||0;account.apr=Number(UI.byId("formApr").value)||0;account.min=Number(UI.byId("formMin").value)||0;account.note=UI.byId("formNote").value||"";account.promoEnabled=Boolean(UI.byId("formPromo")?.checked);account.promoApr=Number(UI.byId("formPromoApr")?.value)||0;account.promoExpires=UI.byId("formPromoExpires")?.value||"";account.standardApr=Number(UI.byId("formStandardApr")?.value)||account.apr;if(!data.startingAmount)data.startingAmount=E.totalBalance(activeAccounts(data));saveRender("accounts");},
     archiveAccount(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account&&confirm("Archive this account?")){account.archived=true;saveRender("accounts");}},
     exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="seasons-backup.json";link.click();},
     resetAll(){if(confirm("Reset all local Seasons data?")){data=window.CCStorage.reset();location.reload();}},

@@ -22,6 +22,10 @@
     apr:Number(account.apr)||0,
     min:Number(account.min)||0,
     note:account.note || "",
+    promoEnabled:Boolean(account.promoEnabled),
+    promoApr:Number(account.promoApr)||0,
+    promoExpires:account.promoExpires || "",
+    standardApr:Number(account.standardApr)||0,
     archived:Boolean(account.archived)
   };}
   function normalize(data){const base=Object.assign(cloneBlank(),data||{});base.strategy=base.strategy || "avalanche";base.accounts=(base.accounts||[]).map(normalizeAccount);base.snapshots=base.snapshots || base.reviewHistory || [];

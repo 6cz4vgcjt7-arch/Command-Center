@@ -15,6 +15,7 @@
   function reviewSegments(done,total){if(!total)return 0;const p=(Number(done)||0)/Number(total);if(p>=1)return 4;if(p>=.75)return 3;if(p>=.5)return 2;if(p>=.25)return 1;return 0;}
   function displayName(account){return account?.name || "Account";}
   function strategyLabel(strategy){return strategy==="snowball"?"Smallest Balance First":"Highest Interest First";}
-  window.SeasonsUI={byId,escapeHtml,showScreen,setActiveNav,money,todayParts,leaf,cycle,reviewSegments,displayName,strategyLabel};
+  function prettyDate(value){if(!value)return "";const d=new Date(value+"T00:00:00");if(Number.isNaN(d.getTime()))return value;return d.toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"});}
+  window.SeasonsUI={byId,escapeHtml,showScreen,setActiveNav,money,todayParts,leaf,cycle,reviewSegments,displayName,strategyLabel,prettyDate};
   window.CCUI=Object.assign({},window.SeasonsUI,{monthName(months){const d=new Date();d.setMonth(d.getMonth()+months);return d.toLocaleString(undefined,{month:"short",year:"numeric"});}});
 })();
