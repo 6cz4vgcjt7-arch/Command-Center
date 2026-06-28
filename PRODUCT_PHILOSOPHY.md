@@ -29,3 +29,31 @@ The weekly review is not just data entry. It is a moment of attention that helps
 ## The Promise
 
 Your season may change. Your weekly habit remains the same.
+
+## Season Transition Engine
+
+Seasons may notice sustained patterns over multiple Weekly Reviews and invite the user to reflect on whether their current season still fits.
+
+Canonical language:
+
+> We've noticed a seasonal change.
+>
+> Over the past several reviews, your financial priorities appear to be shifting.
+>
+> Would you like to reflect on whether your current season still fits?
+
+Transitions are never automatic. Seasons recommends; the user decides.
+
+Canonical encouragement:
+
+> Seasons change.
+>
+> The goal isn't to stay in one forever.
+>
+> The goal is to recognize what deserves your attention today.
+
+No season is superior to another. Returning to Establish is not starting over; it is responding wisely to a new chapter.
+
+## Foundations
+
+The first non-debt account types are Emergency Fund and Retirement. They are called Foundations, not assets, because they support the Establish season and keep Seasons from becoming a generic net-worth dashboard.

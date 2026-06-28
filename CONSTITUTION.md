@@ -35,3 +35,17 @@ If removing something does not make the experience worse, it should not be there
 
 ## 12. Seasons should feel like a financial notebook.
 It should not feel like a noisy dashboard or engagement machine.
+
+## Season Transition Principles
+
+- No financial season is superior to another.
+- Seasons are periods of focus, not levels to complete.
+- A season changes when life changes, not because the calendar says so.
+- Seasons may notice a seasonal change, but it never changes the user automatically.
+- The user always decides what deserves their attention today.
+
+## Account Scope
+
+- Version 1.1 supports debts plus two Foundations: Emergency Fund and Retirement.
+- Complexity is earned.
+- Additional account types appear only when they naturally support the user's current season.

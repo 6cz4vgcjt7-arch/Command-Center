@@ -114,3 +114,6 @@ html,body{font-family:var(--body)}
 .inlineDelta{min-height:28px;margin:12px 0 0}.inlineDelta .changeLine{display:inline-flex;font-size:14px;padding:7px 10px;border-radius:999px;background:#F4F1EA}.changeLine.good{color:#3F6B4B}.changeLine.attention{color:#9B6B2E}.changeLine.neutral{color:var(--muted)}
 .seasonDetailHero{display:flex;gap:18px;align-items:flex-start}.bigSeason{font-size:34px}.selectedSeasonRow{border-color:rgba(95,118,95,.5);background:#F1F3ED}
 @media (max-height:760px){.screen{padding-top:calc(34px + env(safe-area-inset-top,0px))}.commandLogo{margin-top:-18px}.compactDate .date{font-size:34px}.card{padding:16px;margin:10px 0}.btn{padding:14px 16px}.nav{height:76px}.app{padding-bottom:78px}main{min-height:calc(100vh - 78px)}}
+.seasonNotice,.quietMessage{border-color:rgba(95,118,95,.24);background:rgba(255,255,255,.58)}
+.quietMessage .value{font-family:var(--display);font-size:24px;letter-spacing:-.02em;margin-bottom:8px}
+.seasonNotice .btn{margin-top:12px}

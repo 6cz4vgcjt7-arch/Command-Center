@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION="v1.0.1";
-  const APP_BUILD=101;
+  const APP_VERSION="v1.1.0";
+  const APP_BUILD=110;
   let updateInfo=null;
   let versionTapCount=0;
   let data=window.CCStorage.load();
@@ -15,7 +15,22 @@
     preserve:{icon:"❄️",name:"Preserve",line:"Protect your financial independence.",description:"Preserve what you've built so it can continue supporting your life and the people who matter most."}
   };
   function season(id){return SEASONS[id]||SEASONS.establish;}
-  function setSeason(id){const s=season(id);data.seasonId=id;data.seasonName=s.name;data.seasonSince=data.seasonSince || new Date().toLocaleDateString(undefined,{month:"long",year:"numeric"});}
+  function setSeason(id){const s=season(id);data.seasonId=id;data.seasonName=s.name;data.seasonSince=new Date().toLocaleDateString(undefined,{month:"long",year:"numeric"});}
+  function seasonWelcome(id){
+    if(id==="establish")return "Every new chapter begins by strengthening the foundation beneath it.";
+    if(id==="grow")return "The work you did in Establish made this season possible.";
+    if(id==="steward")return "Your growing resources can now support broader priorities.";
+    if(id==="preserve")return "This season is about protecting the independence you've worked to build.";
+    return "What matters is recognizing what deserves your attention today.";
+  }
+  function accountKind(account){return E.accountKind?E.accountKind(account):"debt";}
+  function isDebt(account){return accountKind(account)==="debt";}
+  function isFoundation(account){return accountKind(account)==="foundation";}
+  function directionWord(account,delta){
+    if(delta>0)return isDebt(account)?"decreased":"increased";
+    if(delta<0)return isDebt(account)?"increased":"decreased";
+    return "unchanged";
+  }
   function recommendSeason(){
     const answers=data.onboarding?.answers||{};
     const scores={establish:0,grow:0,steward:0,preserve:0};
@@ -135,14 +150,20 @@
   function accountDelta(account,newBalance){
     const previous=Number(account?.balance)||0;
     const current=Number(newBalance)||0;
-    // For debt accounts, a positive change means the amount owed went down.
-    return previous-current;
+    // For debt accounts, lower is progress. For foundation accounts, higher is progress.
+    return isDebt(account) ? previous-current : current-previous;
   }
 
-  function changeLine(delta){
+  function changeLine(delta,account){
     const amount=UI.money(Math.abs(delta));
-    if(delta>0)return `<div class="changeLine good">↓ ${amount} since last review</div>`;
-    if(delta<0)return `<div class="changeLine attention">↑ ${amount} since last review</div>`;
+    if(delta>0){
+      const arrow=isDebt(account)?"↓":"↑";
+      return `<div class="changeLine good">${arrow} ${amount} since last review</div>`;
+    }
+    if(delta<0){
+      const arrow=isDebt(account)?"↑":"↓";
+      return `<div class="changeLine attention">${arrow} ${amount} since last review</div>`;
+    }
     return `<div class="changeLine neutral">No meaningful change</div>`;
   }
 
@@ -153,12 +174,22 @@
     const f=focus();
     if(f && draft[f.id]!==undefined){
       const delta=accountDelta(f,draft[f.id]);
-      observations.push({label:"Focus Account",value:delta>0?`↓ ${UI.money(delta)}`:delta<0?`↑ ${UI.money(Math.abs(delta))}`:"No meaningful change",kind:delta>0?"good":delta<0?"attention":"neutral"});
+      observations.push({label:"Focus Account",value:delta>0?`${isDebt(f)?"↓":"↑"} ${UI.money(delta)}`:delta<0?`${isDebt(f)?"↑":"↓"} ${UI.money(Math.abs(delta))}`:"No meaningful change",kind:delta>0?"good":delta<0?"attention":"neutral"});
     }
-    const previousTotal=E.totalBalance(accounts);
-    const currentTotal=accounts.reduce((sum,a)=>sum+(draft[a.id]!==undefined?Number(draft[a.id])||0:Number(a.balance)||0),0);
-    const totalDelta=previousTotal-currentTotal;
-    observations.push({label:"Total Balances",value:totalDelta>0?`↓ ${UI.money(totalDelta)}`:totalDelta<0?`↑ ${UI.money(Math.abs(totalDelta))}`:"No meaningful change",kind:totalDelta>0?"good":totalDelta<0?"attention":"neutral"});
+    const debtAccounts=accounts.filter(isDebt);
+    const foundationAccounts=accounts.filter(a=>!isDebt(a));
+    if(debtAccounts.length){
+      const prevDebt=E.totalBalance(debtAccounts);
+      const currDebt=debtAccounts.reduce((sum,a)=>sum+(draft[a.id]!==undefined?Number(draft[a.id])||0:Number(a.balance)||0),0);
+      const delta=prevDebt-currDebt;
+      observations.push({label:"Debt",value:delta>0?`↓ ${UI.money(delta)}`:delta<0?`↑ ${UI.money(Math.abs(delta))}`:"No meaningful change",kind:delta>0?"good":delta<0?"attention":"neutral"});
+    }
+    if(foundationAccounts.length){
+      const prevFound=E.totalBalance(foundationAccounts);
+      const currFound=foundationAccounts.reduce((sum,a)=>sum+(draft[a.id]!==undefined?Number(draft[a.id])||0:Number(a.balance)||0),0);
+      const delta=currFound-prevFound;
+      observations.push({label:"Foundations",value:delta>0?`↑ ${UI.money(delta)}`:delta<0?`↓ ${UI.money(Math.abs(delta))}`:"No meaningful change",kind:delta>0?"good":delta<0?"attention":"neutral"});
+    }
     const promo=E.soonestPromo(data);
     if(promo && promo.reviewsRemaining!==null && promo.reviewsRemaining<=8){
       observations.push({label:"Upcoming",value:`${UI.escapeHtml(promo.name)} promo expires in ${promo.reviewsRemaining} week${promo.reviewsRemaining===1?"":"s"}`,kind:"neutral"});
@@ -170,7 +201,7 @@
     const focusObs=observations.find(o=>o.label==="Focus Account");
     const promoObs=observations.find(o=>o.label==="Upcoming");
     if(focusObs?.kind==="good")return "Your Focus account moved in the right direction this week.";
-    if(focusObs?.kind==="attention")return "Your Focus account increased this week. A short note can help explain the pattern later.";
+    if(focusObs?.kind==="attention")return "Your Focus account moved against your plan this week. A short note can help explain the pattern later.";
     if(promoObs)return "A promotional APR is approaching. Planning ahead gives you more options.";
     return "Your review is complete and your records are current.";
   }
@@ -181,8 +212,60 @@
       <div class="reviewHeader"><button class="back" data-action="backToCommand">‹</button><div class="reviewTitle">Current Season</div><button class="smallBtn" data-action="showSeasonChooser">Change</button></div>
       <div class="card seasonDetailHero"><div class="seasonIcon bigSeason">${current.icon}</div><div><div class="value">${UI.escapeHtml(current.name)}</div><div class="sub">${UI.escapeHtml(current.line)}</div><p class="sub">${UI.escapeHtml(current.description)}</p></div></div>
       <p class="sub">Financial seasons are periods of focus, not levels to complete. Your season can change. Your weekly habit remains the same.</p>
+      <div class="card seasonNotice"><div class="label">Season Check-In</div><div class="value">What deserves your attention now?</div><p class="sub">If life has shifted, Seasons can help you reflect on whether your current season still fits.</p><button class="btn secondary" data-action="showSeasonTransitionNotice">Reflect on Season</button></div>
       <div class="sectionLabel">The Four Financial Seasons</div>
       <div class="accountList">${Object.entries(SEASONS).map(([id,s])=>`<div class="accountRow ${id===data.seasonId?"selectedSeasonRow":""}"><div class="accountMeta"><div>${s.icon} ${UI.escapeHtml(s.name)}</div><div class="sub">${UI.escapeHtml(s.line)}</div></div>${id===data.seasonId?'<span class="check miniCheck">✓</span>':''}</div>`).join("")}</div>`;
+    show("command");
+  }
+
+  function renderSeasonTransitionNotice(){
+    screens.command.innerHTML=`
+      <div class="reviewHeader"><button class="back" data-action="showSeasonDetail">‹</button><div class="reviewTitle">Season Check-In</div><span></span></div>
+      <div class="card center reflectionCard">
+        <div class="label">We've noticed a seasonal change.</div>
+        <div class="value">Over recent reviews, your financial priorities may be shifting.</div>
+        <p class="sub">Would you like to reflect on whether your current season still fits?</p>
+        <button class="btn" data-action="startSeasonTransitionReflection">Reflect</button>
+        <button class="btn secondary" data-action="showSeasonDetail">Keep Current Season</button>
+        <button class="btn secondary" data-action="showSeasonWhy">Why did you notice this?</button>
+      </div>`;
+    show("command");
+  }
+
+  function renderSeasonWhy(){
+    const progress=E.progressStatus(data);
+    const active=activeAccounts();
+    const debts=active.filter(isDebt);
+    const foundations=active.filter(isFoundation);
+    screens.command.innerHTML=`
+      <div class="reviewHeader"><button class="back" data-action="showSeasonTransitionNotice">‹</button><div class="reviewTitle">Why Seasons Noticed</div><span></span></div>
+      <div class="card">
+        <div class="label">Recent Signals</div>
+        <div class="detailRow"><span>Progress</span><strong>${UI.escapeHtml(progress)}</strong></div>
+        <div class="detailRow"><span>Debt Accounts</span><strong>${debts.length}</strong></div>
+        <div class="detailRow"><span>Foundations</span><strong>${foundations.length}</strong></div>
+        <p class="sub">Seasons never changes your season automatically. It only invites reflection when your records suggest your attention may be shifting.</p>
+      </div>
+      <button class="btn" data-action="startSeasonTransitionReflection">Reflect</button>`;
+    show("command");
+  }
+
+  function renderSeasonTransitionReflection(){
+    screens.command.innerHTML=`
+      <div class="reviewHeader"><button class="back" data-action="showSeasonTransitionNotice">‹</button><div class="reviewTitle">Reflect</div><span></span></div>
+      <p class="sub">Which season best describes where your attention is most needed today?</p>
+      <div class="seasonGrid">${Object.entries(SEASONS).map(([id,s])=>`<button class="seasonCard ${data.seasonId===id?"selectedSeason":""}" data-action="setSeasonFromTransition" data-season="${id}"><span class="seasonIcon">${s.icon}</span><span><b>${UI.escapeHtml(s.name)}</b><span class="sub">${UI.escapeHtml(s.line)}</span></span></button>`).join("")}</div>
+      <div class="card quietMessage"><div class="value">Seasons change.</div><p class="sub">The goal isn't to stay in one forever. The goal is to recognize what deserves your attention today.</p></div>`;
+    show("command");
+  }
+
+  function renderSeasonTransitionConfirm(id){
+    const current=season(id);
+    screens.command.innerHTML=`
+      <div class="reviewHeader"><button class="back" data-action="showSeasonDetail">‹</button><div class="reviewTitle">Current Season</div><span></span></div>
+      <div class="card center seasonDetailHero"><div class="seasonIcon bigSeason">${current.icon}</div><div><div class="value">${UI.escapeHtml(current.name)}</div><p class="sub">${UI.escapeHtml(seasonWelcome(id))}</p></div></div>
+      <div class="card quietMessage"><div class="value">Seasons change.</div><p class="sub">The goal isn't to stay in one forever. The goal is to recognize what deserves your attention today.</p></div>
+      <button class="btn" data-action="backToCommand">Continue</button>`;
     show("command");
   }
 
@@ -226,7 +309,7 @@
         <div class="ledgerLine"></div>
         <div><div class="label">Today</div><div class="ledgerWrap"><span>$</span><input id="todayBalance" inputmode="decimal" type="number" value="${Number(draft)||0}" aria-label="Today balance"></div></div>
       </div>
-      <div id="reviewDeltaPreview" class="inlineDelta">${Math.abs(accountDelta(account,draft))>=1?changeLine(accountDelta(account,draft)):""}</div>
+      <div id="reviewDeltaPreview" class="inlineDelta">${Math.abs(accountDelta(account,draft))>=1?changeLine(accountDelta(account,draft),account):""}</div>
       <button class="btn reviewContinue" data-action="saveAccountReview">Continue</button>`;
     setTimeout(()=>wireReviewBalanceInput(account),50);
   }
@@ -242,7 +325,7 @@
       <div class="cycleWrap">${UI.cycle(UI.reviewSegments((data.review.index||0)+1,reviewAccounts().length))}</div>
       <div class="card center reflectionCard">
         <div class="label">${UI.escapeHtml(account.name)}</div>
-        ${changeLine(delta)}
+        ${changeLine(delta,account)}
         <p class="sub">${isIncrease?"Would you like to add a note for later?":"Recorded for this week."}</p>
         ${isIncrease?`<button class="btn secondary" data-action="addReflectionNote">Add Note</button>`:""}
         <button class="btn" data-action="continueAfterReflection">Continue</button>
@@ -345,7 +428,7 @@
       <div class="reviewHeader"><button class="back" data-action="backToAccounts">‹</button><div class="reviewTitle">${isEdit?"Edit Account":"Add Account"}</div><span></span></div>
       <div class="card">
         <label class="label" for="formName">Account Name</label><input id="formName" value="${UI.escapeHtml(account?.name||"")}" placeholder="e.g., Chase Freedom">
-        <label class="label" for="formType">Account Type</label><select id="formType"><option ${account?.type==="Credit Card"?"selected":""}>Credit Card</option><option ${account?.type==="Auto Loan"?"selected":""}>Auto Loan</option><option ${account?.type==="Personal Loan"?"selected":""}>Personal Loan</option><option ${account?.type==="Student Loan"?"selected":""}>Student Loan</option><option ${account?.type==="HELOC"?"selected":""}>HELOC</option></select>
+        <label class="label" for="formType">Account Type</label><select id="formType"><option ${account?.type==="Credit Card"?"selected":""}>Credit Card</option><option ${account?.type==="Auto Loan"?"selected":""}>Auto Loan</option><option ${account?.type==="Personal Loan"?"selected":""}>Personal Loan</option><option ${account?.type==="Student Loan"?"selected":""}>Student Loan</option><option ${account?.type==="HELOC"?"selected":""}>HELOC</option><option ${account?.type==="Emergency Fund"?"selected":""}>Emergency Fund</option><option ${account?.type==="Retirement"?"selected":""}>Retirement</option></select>
         <label class="label" for="formBalance">Current Balance</label><input id="formBalance" type="number" inputmode="decimal" value="${Number(account?.balance)||0}">
         <label class="label" for="formApr">Standard APR</label><input id="formApr" type="number" inputmode="decimal" value="${Number(account?.apr)||0}">
         <label class="label" for="formMin">Minimum Payment</label><input id="formMin" type="number" inputmode="decimal" value="${Number(account?.min)||0}">
@@ -408,7 +491,9 @@
     data.accounts=[
       {id:"demo_chase",name:"Chase Freedom",type:"Credit Card",balance:5427,apr:24.99,min:135,statementDay:"15th",note:"",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:24.99,archived:false,paidOff:false,completedAt:null},
       {id:"demo_citi",name:"Citi",type:"Credit Card",balance:3820,apr:0,min:92,statementDay:"9th",note:"Promo rate",promoEnabled:true,promoApr:0,promoExpires:new Date(Date.now()+86400000*80).toISOString().slice(0,10),standardApr:24.49,archived:false,paidOff:false,completedAt:null},
-      {id:"demo_auto",name:"Car Loan",type:"Auto Loan",balance:11420,apr:6.25,min:412,statementDay:"",note:"",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:6.25,archived:false,paidOff:false,completedAt:null}
+      {id:"demo_auto",name:"Car Loan",type:"Auto Loan",balance:11420,apr:6.25,min:412,statementDay:"",note:"",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:6.25,archived:false,paidOff:false,completedAt:null},
+      {id:"demo_efund",name:"Emergency Fund",type:"Emergency Fund",balance:4000,apr:0,min:0,statementDay:"",note:"Foundation account",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:0,archived:false,paidOff:false,completedAt:null},
+      {id:"demo_retire",name:"Retirement",type:"Retirement",balance:18000,apr:0,min:0,statementDay:"",note:"Foundation account",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:0,archived:false,paidOff:false,completedAt:null}
     ];
     data.startingAmount=20667;data.snapshots=[];data.review={status:"ready",index:0,draft:{},lastCompleted:null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null,notes:{}};saveRender("command");
   }
@@ -423,8 +508,12 @@
     showFocusDetail(){const f=focus();if(f){renderAccountDetail(f);}else{render("accounts");}},
     showSeasonDetail(){renderSeasonDetail();},
     showSeasonChooser(){renderSeasonChooser();},
+    showSeasonTransitionNotice(){renderSeasonTransitionNotice();},
+    showSeasonWhy(){renderSeasonWhy();},
+    startSeasonTransitionReflection(){renderSeasonTransitionReflection();},
     backToCommand(){render("command");},
     setSeasonFromCommand(node){setSeason(node.dataset.season||"establish");save();renderSeasonDetail();},
+    setSeasonFromTransition(node){const id=node.dataset.season||"establish";setSeason(id);save();renderSeasonTransitionConfirm(id);},
     startReview(){if(!activeAccounts().length){renderAccountForm();return;}if(data.review.status==="complete"){render("review");return;}if(data.review.status!=="inProgress"&&data.review.status!=="allUpdated"&&data.review.status!=="paidOffPrompt"){data.review={status:"ready",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};}saveRender("review");},
     beginNewReview(){data.review={status:"inProgress",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};saveRender("review");},
     cancelReview(){saveRender("command");},
