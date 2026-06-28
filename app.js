@@ -1,11 +1,19 @@
 (function(){
-  const APP_VERSION="v1.1.1";
-  const APP_BUILD=111;
+  const APP_VERSION="v1.1.2";
+  const APP_BUILD=112;
   let updateInfo=null;
   let versionTapCount=0;
-  let data=window.CCStorage.load();
+  const startupErrors=window.SEASONS_BOOT_ERRORS || [];
   const UI=window.SeasonsUI;
   const E=window.CCEngine;
+  let data;
+  try{
+    data=window.CCStorage.load();
+  }catch(error){
+    startupErrors.push("Storage load failed: "+(error?.message||error));
+    try{localStorage.removeItem("seasons_v01_data");}catch(_){}
+    data=window.CCStorage.blank ? window.CCStorage.blank() : {setupComplete:false,accounts:[],snapshots:[],review:{status:"ready",index:0,draft:{},notes:{}}};
+  }
   const screens={command:UI.byId("command"),review:UI.byId("review"),accounts:UI.byId("accounts"),settings:UI.byId("settings"),onboarding:UI.byId("onboarding")};
 
   const SEASONS={
@@ -53,16 +61,30 @@
   }
 
 
-  function save(){window.CCStorage.save(data);}
+  function save(){try{window.CCStorage.save(data);}catch(error){startupErrors.push("Save failed: "+(error?.message||error));}}
   function saveRender(screen="command"){save();render(screen);}
   function activeAccounts(){return E.activeAccounts(data);}
   function completedAccounts(){return E.completedAccounts(data);}
   function focus(){return E.focusAccount(data);}
-  function show(screen){UI.showScreen(screen);UI.setActiveNav(screen==="onboarding"?"command":screen);}
+  function show(screen){try{UI.showScreen(screen);UI.setActiveNav(screen==="onboarding"?"command":screen);}catch(error){startupErrors.push("Show failed: "+(error?.message||error));}}
 
   function render(screen){
-    if(!data.setupComplete){renderOnboarding();show("onboarding");return;}
-    renderCommand();renderReview();renderAccounts();renderSettings();show(screen);
+    try{
+      if(!data.setupComplete){renderOnboarding();show("onboarding");return;}
+      renderCommand();renderReview();renderAccounts();renderSettings();show(screen);
+    }catch(error){
+      startupErrors.push("Render failed: "+(error?.message||error));
+      renderStartupError(error);
+    }
+  }
+
+  function renderStartupError(error){
+    const target=UI.byId("command") || document.querySelector(".screen");
+    if(target){
+      target.classList.add("active");
+      target.innerHTML=`<div class="topbar"><div class="brand">SEASONS</div></div><div class="card startupError"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered instead of staying stuck on the opening screen.</p><button class="btn" data-action="clearAppCache">Clear cache and reload</button><button class="btn secondary" onclick="location.reload()">Reload</button><p class="tinyNote">${APP_VERSION}</p></div>`;
+    }
+    try{window.SEASONS_HIDE_SPLASH && window.SEASONS_HIDE_SPLASH();}catch(_){}
   }
 
   function renderOnboarding(){
@@ -561,7 +583,7 @@
 
   const actions={
     startSeasonReflection(){data.onboarding.step="discover";saveRender("onboarding");},
-    recommendCurrentSeason(){data.onboarding.answers={q1:UI.byId("seasonQ1").value,q2:UI.byId("seasonQ2").value,q3:UI.byId("seasonQ3").value};data.onboarding.recommendedSeason=recommendSeason();data.onboarding.step="recommendation";saveRender("onboarding");},
+    recommendCurrentSeason(){data.onboarding.answers={q1:UI.byId("seasonQ1")?.value||"establish",q2:UI.byId("seasonQ2")?.value||"establish",q3:UI.byId("seasonQ3")?.value||"establish"};data.onboarding.recommendedSeason=recommendSeason();data.onboarding.step="recommendation";saveRender("onboarding");},
     acceptSeasonRecommendation(){setSeason(data.onboarding.recommendedSeason||"establish");data.onboarding.step="setup";saveRender("onboarding");},
     chooseAnotherSeason(){data.onboarding.step="chooseSeason";saveRender("onboarding");},
     selectSeason(node){setSeason(node.dataset.season||"establish");data.onboarding.step="setup";saveRender("onboarding");},
@@ -614,8 +636,8 @@
 
   function handleClick(event){const actionTarget=event.target.closest("[data-action]");if(actionTarget){const action=actionTarget.dataset.action;if(actions[action]){actions[action](actionTarget);return;}}const screenTarget=event.target.closest("[data-screen]");if(screenTarget){const id=screenTarget.dataset.screen;render(id);}}
   document.addEventListener("click",handleClick);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
-  render(data.setupComplete?"command":"onboarding");
-  setTimeout(()=>document.getElementById("splash")?.classList.add("hiddenSplash"),900);
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js?v=1.1.2").catch(error=>startupErrors.push("Service worker failed: "+(error?.message||error)));}
+  try{render(data.setupComplete?"command":"onboarding");}catch(error){startupErrors.push("Startup failed: "+(error?.message||error));renderStartupError(error);}
+  setTimeout(()=>{try{window.SEASONS_HIDE_SPLASH ? window.SEASONS_HIDE_SPLASH() : document.getElementById("splash")?.classList.add("hiddenSplash");}catch(_){}},900);
   setTimeout(()=>checkForUpdate(true),800);
 })();

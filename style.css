@@ -127,3 +127,8 @@ html,body{font-family:var(--body)}
 .formFooter{position:static!important;bottom:auto!important;padding:12px 0 4px!important;background:transparent!important;margin-top:4px!important}
 #debtFields.hidden,#promoCard.hidden{display:none!important}
 @media (max-height:760px){.commandReflection{font-size:16px;margin-bottom:8px}.compactDate .weekday{font-size:18px}.compactDate .date{font-size:32px}.commandCard{padding:14px 16px}.primaryReview .status{font-size:24px}.primaryReview .value{font-size:23px}}
+
+/* v1.1.2 startup reliability */
+.startupError { margin-top: 24px; }
+.tinyNote { font-size: 12px; opacity: .65; margin-top: 14px; }
+.seasons-boot-error #splash { opacity: 0; pointer-events: none; }

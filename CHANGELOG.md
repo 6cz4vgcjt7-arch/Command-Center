@@ -1,3 +1,10 @@
+# v1.1.2 — Reliability Update
+
+- Added a startup failsafe so the splash screen cannot hang indefinitely.
+- Added a friendly startup recovery screen with reload and cache-clear options.
+- Added cache-busted asset URLs and a new service worker cache version.
+- Hardened startup against storage/load errors.
+
 # Changelog
 
 ## v1.1.0

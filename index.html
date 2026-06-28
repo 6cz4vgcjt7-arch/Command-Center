@@ -5,8 +5,33 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#FAF8F2">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.1.2">
   <title>Seasons</title>
+  <script>
+    window.SEASONS_VERSION = "v1.1.2";
+    window.SEASONS_BOOT_ERRORS = [];
+    window.addEventListener("error", function(event){
+      window.SEASONS_BOOT_ERRORS.push((event.message || "Error") + (event.filename ? " @ " + event.filename.split('/').pop() + ":" + event.lineno : ""));
+      document.documentElement.classList.add("seasons-boot-error");
+    });
+    window.addEventListener("unhandledrejection", function(event){
+      window.SEASONS_BOOT_ERRORS.push("Promise: " + ((event.reason && event.reason.message) || event.reason || "Unknown"));
+      document.documentElement.classList.add("seasons-boot-error");
+    });
+    window.SEASONS_HIDE_SPLASH = function(){
+      var splash = document.getElementById("splash");
+      if (splash) splash.classList.add("hiddenSplash");
+    };
+    setTimeout(window.SEASONS_HIDE_SPLASH, 2000);
+    setTimeout(function(){
+      var splash = document.getElementById("splash");
+      var active = document.querySelector(".screen.active");
+      if (splash && !splash.classList.contains("hiddenSplash")) window.SEASONS_HIDE_SPLASH();
+      if (document.documentElement.classList.contains("seasons-boot-error") && active && !document.getElementById("startupError")) {
+        active.innerHTML = '<div id="startupError" class="startupError card"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered from a startup error instead of staying stuck on the opening screen.</p><button class="btn" onclick="location.reload()">Reload Seasons</button><button class="btn secondary" onclick="caches&&caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k)}))}).then(function(){location.reload()})">Clear cache and reload</button><p class="tinyNote">Version v1.1.2</p></div>';
+      }
+    }, 2500);
+  </script>
 </head>
 <body>
   <div id="splash" class="splash" aria-hidden="true"><div class="splashMark"></div><div class="splashWord">seasons</div></div>
@@ -27,9 +52,9 @@
     </nav>
   </div>
 
-  <script src="storage.js"></script>
-  <script src="engine.js"></script>
-  <script src="ui.js"></script>
-  <script src="app.js"></script>
+  <script src="storage.js?v=1.1.2"></script>
+  <script src="engine.js?v=1.1.2"></script>
+  <script src="ui.js?v=1.1.2"></script>
+  <script src="app.js?v=1.1.2"></script>
 </body>
 </html>
