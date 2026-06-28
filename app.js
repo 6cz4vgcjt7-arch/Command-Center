@@ -1,4 +1,8 @@
 (function(){
+  const APP_VERSION="v0.7";
+  const APP_BUILD=70;
+  let updateInfo=null;
+  let versionTapCount=0;
   let data=window.CCStorage.load();
   const UI=window.SeasonsUI;
   const E=window.CCEngine;
@@ -43,6 +47,7 @@
     screens.command.innerHTML=`
       <div class="topbar brandOnly"><h1 class="brand">SEASONS</h1></div>
       <div class="dateBlock"><div class="weekday">${t.weekday}</div><div class="date">${t.date}</div></div>
+      ${updateInfo?`<div class="updateBanner"><div><b>New version available</b><div class="sub">${UI.escapeHtml(updateInfo.version || "Update")}</div></div><button class="smallBtn" data-action="reloadUpdate">Reload</button></div>`:""}
       <div class="card">
         <div class="row"><div><div class="value">Weekly Review</div><div class="status">${reviewComplete?"Complete":data.review?.status==="inProgress"?"In Progress":data.review?.status==="allUpdated"?"Ready to Close":"Ready"}</div><div class="sub">${reviewComplete?"Next Thursday":`${data.reviewDay} • ${data.reviewTime}`}</div></div><div class="chev">›</div></div>
         <button class="btn" data-action="startReview">${data.review?.status==="inProgress"?"Continue Weekly Review":data.review?.status==="allUpdated"?"Close Week":reviewComplete?"View This Week":"Start Weekly Review"}</button>
@@ -86,11 +91,12 @@
       <div class="cycleWrap">${UI.cycle(seg)}</div>
       <div class="reviewCount">Account ${index+1} of ${accounts.length}</div>
       <div class="accountName">${UI.escapeHtml(account.name)}</div>
-      <div class="previousBlock"><div class="label">Previous</div><div class="previousAmount">${UI.money(account.balance)}</div></div>
-      <div class="label">Today</div>
-      <div class="ledgerWrap"><span>$</span><input id="todayBalance" inputmode="decimal" type="number" value="${Number(draft)||0}" aria-label="Today balance"></div>
-      <div class="helper">Enter today’s balance as of now.</div>
-      <button class="btn" data-action="saveAccountReview">Continue</button>`;
+      <div class="ledgerPair">
+        <div><div class="label">Previous</div><div class="previousAmount">${UI.money(account.balance)}</div></div>
+        <div class="ledgerLine"></div>
+        <div><div class="label">Today</div><div class="ledgerWrap"><span>$</span><input id="todayBalance" inputmode="decimal" type="number" value="${Number(draft)||0}" aria-label="Today balance"></div></div>
+      </div>
+      <button class="btn reviewContinue" data-action="saveAccountReview">Continue</button>`;
     setTimeout(()=>{const input=UI.byId("todayBalance");if(input){input.focus();input.select();}},50);
   }
 
@@ -115,8 +121,8 @@
     screens.review.innerHTML=`
       <div class="reviewHeader"><button class="back" data-action="resumeLastAccount">‹</button><div class="reviewTitle">Weekly Review</div><span></span></div>
       <div class="cycleWrap">${UI.cycle(4)}</div>
-      <div class="center"><div class="value">All Accounts Updated</div><div class="sub">You’re ready to close your week.</div></div>
-      <div class="card accountList">${accounts.map(a=>`<div class="row"><div class="row" style="justify-content:flex-start"><span class="check">✓</span><span>${UI.escapeHtml(a.name)}</span></div><span>${UI.money(data.review.draft?.[a.id] ?? a.balance)}</span></div>`).join("")}</div>
+      <div class="center allUpdated"><div class="value">All Accounts Updated</div><div class="sub">You’re ready to close your week.</div></div>
+      <div class="card accountList quietList">${accounts.map(a=>`<div class="row"><div class="row" style="justify-content:flex-start"><span class="check">✓</span><span>${UI.escapeHtml(a.name)}</span></div><span>${UI.money(data.review.draft?.[a.id] ?? a.balance)}</span></div>`).join("")}</div>
       <button class="btn" data-action="closeWeek">Close Week</button>`;
   }
 
@@ -200,7 +206,16 @@
     show("accounts");setTimeout(()=>wirePromoForm(),0);
   }
 
-  function renderSettings(){screens.settings.innerHTML=`<div class="screenTitle">Settings</div><div class="card"><div class="settingsGroup"><div class="label">Preferences</div><button class="settingRow tappable" data-action="editReviewDay"><span>Weekly Review Day</span><span><span class="muted">${UI.escapeHtml(data.reviewDay)}</span><span class="miniChev">›</span></span></button><button class="settingRow tappable" data-action="editReviewTime"><span>Review Time</span><span><span class="muted">${UI.escapeHtml(data.reviewTime)}</span><span class="miniChev">›</span></span></button><button class="settingRow tappable" data-action="editStrategy"><span>Focus Strategy</span><span><span class="muted">${UI.strategyLabel(data.strategy)}</span><span class="miniChev">›</span></span></button></div></div><div class="card"><div class="label">Privacy</div><div class="value">Local</div><div class="sub">No bank connections. Data stays in this browser unless exported.</div></div><button class="btn secondary" data-action="exportData">Export Backup</button><button class="btn danger" data-action="resetAll">Reset Local Data</button>`;}
+  function renderSettings(){
+    const dev=data.devMode;
+    screens.settings.innerHTML=`<div class="screenTitle">Settings</div>
+      ${updateInfo?`<div class="updateBanner"><div><b>New version available</b><div class="sub">${UI.escapeHtml(updateInfo.version||"Update")}</div></div><button class="smallBtn" data-action="reloadUpdate">Reload</button></div>`:""}
+      <div class="card"><div class="settingsGroup"><div class="label">Preferences</div><button class="settingRow tappable" data-action="editReviewDay"><span>Weekly Review Day</span><span><span class="muted">${UI.escapeHtml(data.reviewDay)}</span><span class="miniChev">›</span></span></button><button class="settingRow tappable" data-action="editReviewTime"><span>Review Time</span><span><span class="muted">${UI.escapeHtml(data.reviewTime)}</span><span class="miniChev">›</span></span></button><button class="settingRow tappable" data-action="editStrategy"><span>Focus Strategy</span><span><span class="muted">${UI.strategyLabel(data.strategy)}</span><span class="miniChev">›</span></span></button></div></div>
+      <div class="card"><div class="label">Privacy</div><div class="value">Local</div><div class="sub">No bank connections. Data stays in this browser unless exported.</div></div>
+      <div class="card"><button class="settingRow tappable" data-action="tapVersion"><span>Version</span><span><span class="muted">${APP_VERSION} · Build ${APP_BUILD}</span><span class="miniChev">›</span></span></button><button class="settingRow tappable" data-action="forceUpdateCheck"><span>Check for Update</span><span class="miniChev">›</span></button></div>
+      ${dev?`<div class="card"><div class="label">Developer</div><button class="settingRow tappable" data-action="loadDemoData"><span>Load Demo Data</span><span class="miniChev">›</span></button><button class="settingRow tappable" data-action="clearAppCache"><span>Clear App Cache</span><span class="miniChev">›</span></button><button class="settingRow tappable" data-action="resetAll"><span class="dangerText">Reset Local Data</span><span class="miniChev">›</span></button></div>`:""}
+      <button class="btn secondary" data-action="exportData">Export Backup</button>${dev?"":`<button class="btn danger" data-action="resetAll">Reset Local Data</button>`}`;
+  }
 
   function renderDayPicker(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Weekly Review Day</div><span></span></div><div class="card accountList">${days.map(day=>`<button class="settingChoice ${data.reviewDay===day?"selected":""}" data-action="setReviewDay" data-value="${day}"><span>${day}</span>${data.reviewDay===day?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
   function renderStrategyPicker(){const strategies=[{value:"avalanche",label:"Highest Interest First",sub:"Save more by paying interest first."},{value:"snowball",label:"Smallest Balance First",sub:"Build momentum through early wins."}];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Focus Strategy</div><span></span></div><div class="card accountList">${strategies.map(strategy=>`<button class="settingChoice ${data.strategy===strategy.value?"selected":""}" data-action="setStrategy" data-value="${strategy.value}"><span><b>${strategy.label}</b><span class="sub">${strategy.sub}</span></span>${data.strategy===strategy.value?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
@@ -209,6 +224,29 @@
 
   function advanceReview(){const accounts=reviewAccounts();if(data.review.index>=accounts.length-1){data.review.status="allUpdated";}else{data.review.index+=1;data.review.status="inProgress";}data.review.pendingPaidOff=null;saveRender("review");}
   function completeAccount(account){account.balance=0;account.paidOff=true;account.completedAt=new Date().toISOString();}
+
+  async function checkForUpdate(silent=true){
+    try{
+      const response=await fetch(`version.json?ts=${Date.now()}`,{cache:"no-store"});
+      if(!response.ok)throw new Error("No version file");
+      const latest=await response.json();
+      if(Number(latest.build)>APP_BUILD){updateInfo=latest;if(!silent)alert("A new version is available.");render(data.setupComplete?"settings":"command");return true;}
+      updateInfo=null;if(!silent)alert("Seasons is up to date.");return false;
+    }catch(error){if(!silent)alert("Could not check for updates right now.");return false;}
+  }
+  async function clearCaches(){
+    if("serviceWorker" in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(reg=>reg.update().catch(()=>{})));}
+    if("caches" in window){const keys=await caches.keys();await Promise.all(keys.map(key=>caches.delete(key)));}
+  }
+  function loadDemoDataset(){
+    data.setupComplete=true;data.reviewDay=data.reviewDay||"Thursday";data.reviewTime=data.reviewTime||"7:30 PM";data.strategy=data.strategy||"avalanche";data.seasonName="Debt Freedom";data.seasonSince="June 2026";
+    data.accounts=[
+      {id:"demo_chase",name:"Chase Freedom",type:"Credit Card",balance:5427,apr:24.99,min:135,statementDay:"15th",note:"",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:24.99,archived:false,paidOff:false,completedAt:null},
+      {id:"demo_citi",name:"Citi",type:"Credit Card",balance:3820,apr:0,min:92,statementDay:"9th",note:"Promo rate",promoEnabled:true,promoApr:0,promoExpires:new Date(Date.now()+86400000*80).toISOString().slice(0,10),standardApr:24.49,archived:false,paidOff:false,completedAt:null},
+      {id:"demo_auto",name:"Car Loan",type:"Auto Loan",balance:11420,apr:6.25,min:412,statementDay:"",note:"",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:6.25,archived:false,paidOff:false,completedAt:null}
+    ];
+    data.startingAmount=20667;data.snapshots=[];data.review={status:"ready",index:0,draft:{},lastCompleted:null,nextReview:"Next Thursday",pendingPaidOff:null};saveRender("command");
+  }
 
   const actions={
     finishSetup(){data.reviewDay=UI.byId("setupDay").value;data.reviewTime=UI.byId("setupTime").value||"7:30 PM";data.strategy=UI.byId("setupStrategy").value;data.setupComplete=true;saveRender("command");},
@@ -236,6 +274,11 @@
     editReviewTime(){const next=prompt("Review time",data.reviewTime||"7:30 PM");if(next!==null&&next.trim()){data.reviewTime=next.trim();saveRender("settings");}},
     editStrategy(){renderStrategyPicker();},
     setStrategy(node){data.strategy=node.dataset.value;saveRender("settings");},
+    tapVersion(){versionTapCount+=1;if(versionTapCount>=5){data.devMode=true;saveRender("settings");}},
+    forceUpdateCheck(){checkForUpdate(false);},
+    async reloadUpdate(){await clearCaches();location.reload();},
+    async clearAppCache(){await clearCaches();alert("Cache cleared. Reloading Seasons.");location.reload();},
+    loadDemoData(){if(confirm("Replace local data with demo data?")){loadDemoDataset();}},
     backToSettings(){renderSettings();show("settings");}
   };
 
@@ -243,4 +286,5 @@
   document.addEventListener("click",handleClick);
   if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
   render(data.setupComplete?"command":"onboarding");
+  setTimeout(()=>checkForUpdate(true),800);
 })();

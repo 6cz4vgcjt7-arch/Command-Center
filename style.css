@@ -46,3 +46,23 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:#FFFEFA
 .miniCheck{width:18px;height:18px;font-size:11px;display:inline-flex;margin-right:8px;vertical-align:-3px}
 .paidOffCard{padding-top:28px;padding-bottom:28px}
 .paidOffCard .btn.secondary{margin-top:8px}
+
+/* v0.7 Notebook Release refinements */
+.updateBanner{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#EEF0EA;border:1px solid rgba(95,118,95,.18);border-radius:18px;padding:14px 16px;margin:10px 0 16px;color:var(--sage-dark)}
+.dangerText{color:var(--danger)}
+.ledgerPair{margin:14px 0 22px}
+.ledgerPair .ledgerLine{height:1px;background:var(--line);margin:20px 0}
+.reviewContinue{margin-top:26px}
+.allUpdated{margin:14px 0 18px}
+.quietList{box-shadow:none;background:rgba(255,254,250,.62)}
+.cycle .seg{stroke-width:15;stroke-linecap:round;transition:stroke .34s ease, opacity .34s ease;opacity:.9}
+.cycle .seg.filled{opacity:1}
+.cycleLeaf .leafMark{width:38px;height:38px}
+.nav button{border-radius:14px;background:transparent!important}
+.nav button.active::after{bottom:2px;width:20px;height:2px;opacity:.42}
+@media (prefers-reduced-motion:no-preference){
+  .screen.active{animation:pageInV07 .26s cubic-bezier(.22,.61,.36,1)}
+  @keyframes pageInV07{from{opacity:.78;transform:translateX(14px) scale(.996);filter:drop-shadow(-10px 0 18px rgba(40,45,35,.03))}to{opacity:1;transform:translateX(0) scale(1);filter:none}}
+  .cycle .seg.filled{animation:segmentFill .34s ease both}
+  @keyframes segmentFill{from{opacity:.45}to{opacity:1}}
+}
