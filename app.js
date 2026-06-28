@@ -35,14 +35,14 @@
   function renderCommand(){
     const t=UI.todayParts();const f=focus();const status=E.progressStatus(data);const reviewComplete=data.review?.status==="complete";
     screens.command.innerHTML=`
-      <div class="topbar"><h1 class="brand">SEASONS</h1>${UI.leaf()}</div>
+      <div class="topbar brandOnly"><h1 class="brand">SEASONS</h1></div>
       <div class="dateBlock"><div class="weekday">${t.weekday}</div><div class="date">${t.date}</div></div>
       <div class="card">
         <div class="row"><div><div class="value">Weekly Review</div><div class="status">${reviewComplete?"Complete":data.review?.status==="inProgress"?"In Progress":"Ready"}</div><div class="sub">${reviewComplete?"Next Thursday":`${data.reviewDay} • ${data.reviewTime}`}</div></div><div class="chev">›</div></div>
         <button class="btn" data-action="startReview">${data.review?.status==="inProgress"?"Continue Weekly Review":reviewComplete?"View This Week":"Start Weekly Review"}</button>
       </div>
       <div class="card" data-screen="accounts"><div class="label">Focus</div><div class="value">${f?UI.escapeHtml(f.name):"Add Account"}</div><div class="spacer"></div><div class="label">Last Reviewed</div><div class="value">${f?UI.money(f.balance):"—"}</div></div>
-      <div class="card"><div class="row"><div><div class="label">Progress</div><div class="value">${status}</div></div><div class="check">✓</div></div></div>
+      <div class="card"><div class="label">Progress</div><div class="value">${status}</div></div>
       <div class="card"><div class="row"><div><div class="label">Season</div><div class="value">${UI.escapeHtml(data.seasonName)}</div><div class="sub">Since ${UI.escapeHtml(data.seasonSince)}</div></div><div class="chev">›</div></div></div>`;
   }
 
@@ -90,7 +90,7 @@
 
   function renderAccounts(){const accounts=activeAccounts();const f=focus();screens.accounts.innerHTML=`
     <div class="reviewHeader"><div class="screenTitle">Accounts</div><button class="smallBtn" data-action="showAddAccount">＋</button></div>
-    <div class="accountList">${accounts.length?accounts.map(a=>`<div class="accountRow" data-action="editAccount" data-id="${a.id}"><div class="accountMeta"><div>${f&&f.id===a.id?`<span class="focusDot"></span>`:""}${UI.escapeHtml(a.name)}</div><div class="sub">${UI.escapeHtml(a.type||"Account")}</div></div><div class="row"><span>${UI.money(a.balance)}</span><span class="chev">›</span></div></div>`).join(""):`<div class="empty">No accounts yet.</div>`}</div>
+    <div class="accountList">${accounts.length?accounts.map(a=>`<div class="accountRow" data-action="editAccount" data-id="${a.id}"><div class="accountMeta"><div>${f&&f.id===a.id?`<span class="focusDot"></span>`:""}${UI.escapeHtml(a.name)}</div><div class="sub">${UI.escapeHtml(a.type||"Account")}</div></div><div class="row"><span>${UI.money(a.balance)}</span></div></div>`).join(""):`<div class="empty">No accounts yet.</div>`}</div>
     <button class="btn secondary" data-action="showAddAccount">Add Account</button>`;}
 
   function renderAccountForm(account=null){const isEdit=Boolean(account);screens.accounts.innerHTML=`
@@ -107,10 +107,22 @@
 
   function renderSettings(){screens.settings.innerHTML=`
     <div class="screenTitle">Settings</div>
-    <div class="card"><div class="settingsGroup"><div class="label">Preferences</div><div class="settingRow"><span>Weekly Review Day</span><span class="muted">${UI.escapeHtml(data.reviewDay)}</span></div><div class="settingRow"><span>Review Time</span><span class="muted">${UI.escapeHtml(data.reviewTime)}</span></div><div class="settingRow"><span>Focus Strategy</span><span class="muted">${UI.strategyLabel(data.strategy)}</span></div></div></div>
+    <div class="card"><div class="settingsGroup"><div class="label">Preferences</div>
+      <button class="settingRow tappable" data-action="editReviewDay"><span>Weekly Review Day</span><span><span class="muted">${UI.escapeHtml(data.reviewDay)}</span><span class="miniChev">›</span></span></button>
+      <button class="settingRow tappable" data-action="editReviewTime"><span>Review Time</span><span><span class="muted">${UI.escapeHtml(data.reviewTime)}</span><span class="miniChev">›</span></span></button>
+      <button class="settingRow tappable" data-action="editStrategy"><span>Focus Strategy</span><span><span class="muted">${UI.strategyLabel(data.strategy)}</span><span class="miniChev">›</span></span></button>
+    </div></div>
     <div class="card"><div class="label">Privacy</div><div class="value">Local</div><div class="sub">No bank connections. Data stays in this browser unless exported.</div></div>
     <button class="btn secondary" data-action="exportData">Export Backup</button>
     <button class="btn danger" data-action="resetAll">Reset Local Data</button>`;}
+
+  function renderDayPicker(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];screens.settings.innerHTML=`
+    <div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Weekly Review Day</div><span></span></div>
+    <div class="card accountList">${days.map(day=>`<button class="settingChoice ${data.reviewDay===day?"selected":""}" data-action="setReviewDay" data-value="${day}"><span>${day}</span>${data.reviewDay===day?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
+
+  function renderStrategyPicker(){const strategies=[{value:"avalanche",label:"Highest Interest First",sub:"Save more by paying interest first."},{value:"snowball",label:"Smallest Balance First",sub:"Build momentum through early wins."}];screens.settings.innerHTML=`
+    <div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Focus Strategy</div><span></span></div>
+    <div class="card accountList">${strategies.map(strategy=>`<button class="settingChoice ${data.strategy===strategy.value?"selected":""}" data-action="setStrategy" data-value="${strategy.value}"><span><b>${strategy.label}</b><span class="sub">${strategy.sub}</span></span>${data.strategy===strategy.value?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
 
   const actions={
     finishSetup(){data.reviewDay=UI.byId("setupDay").value;data.reviewTime=UI.byId("setupTime").value||"7:30 PM";data.strategy=UI.byId("setupStrategy").value;data.setupComplete=true;saveRender("command");},
@@ -126,7 +138,13 @@
     saveAccount(node){const id=node.dataset.id;let account=data.accounts.find(a=>a.id===id);if(!account){account={id:`acct_${Date.now()}`,archived:false};data.accounts.push(account);}account.name=UI.byId("formName").value||"Account";account.type=UI.byId("formType").value;account.balance=Number(UI.byId("formBalance").value)||0;account.apr=Number(UI.byId("formApr").value)||0;account.min=Number(UI.byId("formMin").value)||0;account.note=UI.byId("formNote").value||"";if(!data.startingAmount)data.startingAmount=E.totalBalance(activeAccounts(data));saveRender("accounts");},
     archiveAccount(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account&&confirm("Archive this account?")){account.archived=true;saveRender("accounts");}},
     exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="seasons-backup.json";link.click();},
-    resetAll(){if(confirm("Reset all local Seasons data?")){data=window.CCStorage.reset();location.reload();}}
+    resetAll(){if(confirm("Reset all local Seasons data?")){data=window.CCStorage.reset();location.reload();}},
+    editReviewDay(){renderDayPicker();},
+    setReviewDay(node){data.reviewDay=node.dataset.value;saveRender("settings");},
+    editReviewTime(){const next=prompt("Review time",data.reviewTime||"7:30 PM");if(next!==null&&next.trim()){data.reviewTime=next.trim();saveRender("settings");}},
+    editStrategy(){renderStrategyPicker();},
+    setStrategy(node){data.strategy=node.dataset.value;saveRender("settings");},
+    backToSettings(){renderSettings();show("settings");}
   };
 
   function handleClick(event){const actionTarget=event.target.closest("[data-action]");if(actionTarget){const action=actionTarget.dataset.action;if(actions[action]){actions[action](actionTarget);return;}}

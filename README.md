@@ -1,17 +1,10 @@
-# Seasons v0.1
+# Seasons v0.2
 
-A local-first PWA prototype evolved from Command Center.
+Changes:
+- Weekly Review Day, Review Time, and Focus Strategy can be changed from Settings.
+- Updated the leaf mark toward the refined single-leaf direction.
+- Removed duplicate progress/check decoration from Command.
+- Removed account-row chevrons for a cleaner list.
+- Added safe-area spacing improvements for iPhone display.
 
-## What's included
-
-- Command screen
-- Weekly Review flow
-- One-account-at-a-time balance entry
-- Four-segment Seasons cycle
-- Week Closed screen
-- Accounts and Settings
-- Local browser storage only
-
-## Privacy
-
-No personal data is included in this repository. The app stores user-entered data only in the browser's local storage unless exported by the user.
+No personal data is included.
