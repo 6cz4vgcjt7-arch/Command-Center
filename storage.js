@@ -11,7 +11,7 @@
     startingAmount:0,
     accounts:[],
     snapshots:[],
-    review:{status:"ready",index:0,draft:{},lastCompleted:null,nextReview:"Next Thursday",pendingPaidOff:null}
+    review:{status:"ready",index:0,draft:{},lastCompleted:null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null,notes:{}}
   };
   function cloneBlank(){return JSON.parse(JSON.stringify(blank));}
   function normalizeAccount(account,index){return{
@@ -33,7 +33,7 @@
   };}
   function normalize(data){const base=Object.assign(cloneBlank(),data||{});base.strategy=base.strategy || "avalanche";base.accounts=(base.accounts||[]).map(normalizeAccount);base.snapshots=base.snapshots || base.reviewHistory || [];
     if(!base.review)base.review=cloneBlank().review;
-    base.review=Object.assign(cloneBlank().review,base.review);
+    base.review=Object.assign(cloneBlank().review,base.review);base.review.notes=base.review.notes||{};
     if(base.setupComplete===undefined)base.setupComplete=Boolean(base.accounts.length);
     if(!base.startingAmount && base.accounts.length)base.startingAmount=base.accounts.reduce((sum,a)=>sum+(Number(a.balance)||0),0);
     return base;

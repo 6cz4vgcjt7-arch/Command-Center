@@ -1,17 +1,22 @@
-# Seasons v0.8
+# Seasons v0.9
 
-A local-first weekly financial review prototype.
+A weekly financial habit app that helps people build lasting financial achievements.
 
-## What's new in v0.8
+## What changed in v0.9
 
-- Locked the open-arc Seasons identity direction: no dots, four refined arcs, centered leaf
-- Updated the progress cycle so completed segments subtly darken and gain line weight
-- Refined the leaf mark toward the calmer Seasons logo direction
-- Added a quiet splash moment with the cycle + Seasons wordmark
-- Updated typography toward Iowan Old Style for signature display moments and SF Pro for UI text
-- Reworked bottom navigation icons with a calmer, consistent line style
-- Preserved v0.7 Weekly Review, paid-off account, promo APR, developer mode, and update behavior
+- Added the Reflection Engine.
+- After entering a balance, Seasons quietly shows what changed since the last review.
+- Added the `This Week` reflection screen before Week Closed.
+- Weekly snapshots now preserve observations and review notes.
+- Added core product documents: `VISION.md`, `CONSTITUTION.md`, and `DESIGN_SYSTEM.md`.
+- Preserved v0.8 identity direction and behavior.
+
+## Product principle
+
+Seasons never judges. Seasons observes.
+
+Every Weekly Review should help the user notice what changed, not just record what changed.
 
 ## Privacy
 
-No personal data is included. Data stays in browser local storage unless exported.
+This prototype stores data locally in the browser using localStorage. No bank connections, no analytics, no account numbers, and no personal financial data are included in the codebase.

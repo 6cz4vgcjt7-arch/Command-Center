@@ -78,3 +78,16 @@ html,body{font-family:var(--body)}
 .nav{height:84px;padding:0 14px 8px}.nav button{height:54px;min-width:70px;gap:4px;flex-direction:column;border-radius:16px!important;font-size:12px;background:transparent!important}.nav button.active{background:transparent!important}.nav button.active::after{display:none}.navIcon{width:23px;height:23px;display:block;position:relative;color:currentColor}.navIcon:before,.navIcon:after{content:"";position:absolute;box-sizing:border-box}.navCommand:before{left:4px;right:4px;bottom:3px;height:12px;border:2px solid currentColor;border-top:0;border-radius:2px}.navCommand:after{left:5px;top:2px;width:13px;height:13px;border-left:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);border-radius:2px 0 0 0}.navReview:before{inset:4px;border:2px solid currentColor;border-radius:50%}.navReview:after{left:10px;top:1px;width:2px;height:9px;background:currentColor;border-radius:2px;box-shadow:6px 9px 0 -1px currentColor}.navAccounts:before{left:3px;right:3px;top:6px;height:13px;border:2px solid currentColor;border-radius:3px}.navAccounts:after{left:3px;right:3px;top:10px;height:2px;background:currentColor;opacity:.55}.navSettings:before{inset:3px;border:2px solid currentColor;border-radius:50%}.navSettings:after{left:9px;top:9px;width:5px;height:5px;border:2px solid currentColor;border-radius:50%;background:var(--paper);box-shadow:0 -10px 0 -2px currentColor,0 10px 0 -2px currentColor,10px 0 0 -2px currentColor,-10px 0 0 -2px currentColor}.nav button.active .navIcon{color:var(--sage-dark)}
 .card{box-shadow:0 4px 18px rgba(31,36,38,.045)}.btn{background:linear-gradient(180deg,#607A60,#2F4A3A);box-shadow:0 5px 12px rgba(47,74,58,.14)}
 @media (prefers-reduced-motion:no-preference){.screen.active{animation:pageInV08 .28s cubic-bezier(.2,.65,.2,1)}@keyframes pageInV08{from{opacity:.74;transform:translateX(16px) scale(.994);filter:drop-shadow(-12px 0 18px rgba(47,74,58,.035))}to{opacity:1;transform:translateX(0) scale(1);filter:none}}.cycle .seg.filled{animation:segmentFillV08 .34s ease both}@keyframes segmentFillV08{from{opacity:.5;stroke-width:3}to{opacity:1}}}
+
+/* v0.9 Reflection Release */
+.reflectionCard{padding-top:30px;padding-bottom:28px}
+.changeLine{font-family:var(--display);font-size:32px;line-height:1.1;margin:18px 0 10px}
+.good{color:var(--sage-dark)}
+.attention{color:var(--amber)}
+.neutral{color:var(--muted)}
+.reflectionSentence{margin-top:-4px;margin-bottom:18px;max-width:28rem}
+.reflectionList{box-shadow:none;background:rgba(255,254,250,.68)}
+.reflectionRow{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:16px 0;border-bottom:1px solid var(--line)}
+.reflectionRow:last-child{border-bottom:0}
+.reflectionRow span{color:var(--muted);font-size:15px}
+.reflectionRow strong{font-size:16px;font-weight:650;text-align:right;line-height:1.35;max-width:52%}

@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION="v0.8";
-  const APP_BUILD=80;
+  const APP_VERSION="v0.9";
+  const APP_BUILD=90;
   let updateInfo=null;
   let versionTapCount=0;
   let data=window.CCStorage.load();
@@ -65,6 +65,49 @@
     return reviews===null?apr:`${apr}, ${reviews} week${reviews===1?"":"s"} left`;
   }
 
+  function accountDelta(account,newBalance){
+    const previous=Number(account?.balance)||0;
+    const current=Number(newBalance)||0;
+    // For debt accounts, a positive change means the amount owed went down.
+    return previous-current;
+  }
+
+  function changeLine(delta){
+    const amount=UI.money(Math.abs(delta));
+    if(delta>0)return `<div class="changeLine good">↓ ${amount} since last review</div>`;
+    if(delta<0)return `<div class="changeLine attention">↑ ${amount} since last review</div>`;
+    return `<div class="changeLine neutral">No meaningful change</div>`;
+  }
+
+  function weeklyObservations(){
+    const accounts=reviewAccounts();
+    const draft=data.review?.draft||{};
+    const observations=[];
+    const f=focus();
+    if(f && draft[f.id]!==undefined){
+      const delta=accountDelta(f,draft[f.id]);
+      observations.push({label:"Focus Account",value:delta>0?`↓ ${UI.money(delta)}`:delta<0?`↑ ${UI.money(Math.abs(delta))}`:"No meaningful change",kind:delta>0?"good":delta<0?"attention":"neutral"});
+    }
+    const previousTotal=E.totalBalance(accounts);
+    const currentTotal=accounts.reduce((sum,a)=>sum+(draft[a.id]!==undefined?Number(draft[a.id])||0:Number(a.balance)||0),0);
+    const totalDelta=previousTotal-currentTotal;
+    observations.push({label:"Total Balances",value:totalDelta>0?`↓ ${UI.money(totalDelta)}`:totalDelta<0?`↑ ${UI.money(Math.abs(totalDelta))}`:"No meaningful change",kind:totalDelta>0?"good":totalDelta<0?"attention":"neutral"});
+    const promo=E.soonestPromo(data);
+    if(promo && promo.reviewsRemaining!==null && promo.reviewsRemaining<=8){
+      observations.push({label:"Upcoming",value:`${UI.escapeHtml(promo.name)} promo expires in ${promo.reviewsRemaining} week${promo.reviewsRemaining===1?"":"s"}`,kind:"neutral"});
+    }
+    return observations.slice(0,3);
+  }
+
+  function weeklyReflectionSentence(observations){
+    const focusObs=observations.find(o=>o.label==="Focus Account");
+    const promoObs=observations.find(o=>o.label==="Upcoming");
+    if(focusObs?.kind==="good")return "Your Focus account moved in the right direction this week.";
+    if(focusObs?.kind==="attention")return "Your Focus account increased this week. A short note can help explain the pattern later.";
+    if(promoObs)return "A promotional APR is approaching. Planning ahead gives you more options.";
+    return "Your review is complete and your records are current.";
+  }
+
   function renderReview(){
     const accounts=reviewAccounts();
     if(!accounts.length){
@@ -76,6 +119,7 @@
       return;
     }
     if(data.review.status==="paidOffPrompt"){renderPaidOffPrompt();return;}
+    if(data.review.status==="reflection"){renderAccountReflection();return;}
     if(data.review.status==="allUpdated"){renderAllUpdated();return;}
     if(data.review.status!=="inProgress"){
       const f=focus();
@@ -100,6 +144,24 @@
     setTimeout(()=>{const input=UI.byId("todayBalance");if(input){input.focus();input.select();}},50);
   }
 
+  function renderAccountReflection(){
+    const pending=data.review.pendingReflection;
+    const account=data.accounts.find(a=>a.id===pending?.accountId);
+    if(!account){advanceReview();return;}
+    const delta=Number(pending.delta)||0;
+    const isIncrease=delta<0;
+    screens.review.innerHTML=`
+      <div class="reviewHeader"><button class="back" data-action="backFromReflection">‹</button><div class="reviewTitle">Weekly Review</div><span></span></div>
+      <div class="cycleWrap">${UI.cycle(UI.reviewSegments((data.review.index||0)+1,reviewAccounts().length))}</div>
+      <div class="card center reflectionCard">
+        <div class="label">${UI.escapeHtml(account.name)}</div>
+        ${changeLine(delta)}
+        <p class="sub">${isIncrease?"Would you like to add a note for later?":"Recorded for this week."}</p>
+        ${isIncrease?`<button class="btn secondary" data-action="addReflectionNote">Add Note</button>`:""}
+        <button class="btn" data-action="continueAfterReflection">Continue</button>
+      </div>`;
+  }
+
   function renderPaidOffPrompt(){
     const pending=data.review.pendingPaidOff;
     const account=data.accounts.find(a=>a.id===pending?.accountId);
@@ -117,12 +179,14 @@
   }
 
   function renderAllUpdated(){
-    const accounts=reviewAccounts();
+    const observations=weeklyObservations();
+    const sentence=weeklyReflectionSentence(observations);
     screens.review.innerHTML=`
       <div class="reviewHeader"><button class="back" data-action="resumeLastAccount">‹</button><div class="reviewTitle">Weekly Review</div><span></span></div>
       <div class="cycleWrap">${UI.cycle(4)}</div>
-      <div class="center allUpdated"><div class="value">All Accounts Updated</div><div class="sub">You’re ready to close your week.</div></div>
-      <div class="card accountList quietList">${accounts.map(a=>`<div class="row"><div class="row" style="justify-content:flex-start"><span class="check">✓</span><span>${UI.escapeHtml(a.name)}</span></div><span>${UI.money(data.review.draft?.[a.id] ?? a.balance)}</span></div>`).join("")}</div>
+      <div class="screenTitle">This Week</div>
+      <p class="sub reflectionSentence">${UI.escapeHtml(sentence)}</p>
+      <div class="card reflectionList">${observations.map(o=>`<div class="reflectionRow"><span>${UI.escapeHtml(o.label)}</span><strong class="${o.kind}">${o.value}</strong></div>`).join("")}</div>
       <button class="btn" data-action="closeWeek">Close Week</button>`;
   }
 
@@ -222,7 +286,7 @@
 
   function wirePromoForm(){const checkbox=UI.byId("formPromo");const fields=UI.byId("promoFields");const expires=UI.byId("formPromoExpires");const reviews=UI.byId("promoReviews");if(checkbox&&fields){checkbox.addEventListener("change",()=>fields.classList.toggle("hidden",!checkbox.checked));}if(expires&&reviews){expires.addEventListener("input",()=>{const n=E.weeklyReviewsUntil(expires.value);reviews.textContent=n===null?"Add an expiration date to see weeks remaining.":`${n} week${n===1?"":"s"} remaining`;});}}
 
-  function advanceReview(){const accounts=reviewAccounts();if(data.review.index>=accounts.length-1){data.review.status="allUpdated";}else{data.review.index+=1;data.review.status="inProgress";}data.review.pendingPaidOff=null;saveRender("review");}
+  function advanceReview(){const accounts=reviewAccounts();if(data.review.index>=accounts.length-1){data.review.status="allUpdated";}else{data.review.index+=1;data.review.status="inProgress";}data.review.pendingPaidOff=null;data.review.pendingReflection=null;saveRender("review");}
   function completeAccount(account){account.balance=0;account.paidOff=true;account.completedAt=new Date().toISOString();}
 
   async function checkForUpdate(silent=true){
@@ -245,20 +309,23 @@
       {id:"demo_citi",name:"Citi",type:"Credit Card",balance:3820,apr:0,min:92,statementDay:"9th",note:"Promo rate",promoEnabled:true,promoApr:0,promoExpires:new Date(Date.now()+86400000*80).toISOString().slice(0,10),standardApr:24.49,archived:false,paidOff:false,completedAt:null},
       {id:"demo_auto",name:"Car Loan",type:"Auto Loan",balance:11420,apr:6.25,min:412,statementDay:"",note:"",promoEnabled:false,promoApr:0,promoExpires:"",standardApr:6.25,archived:false,paidOff:false,completedAt:null}
     ];
-    data.startingAmount=20667;data.snapshots=[];data.review={status:"ready",index:0,draft:{},lastCompleted:null,nextReview:"Next Thursday",pendingPaidOff:null};saveRender("command");
+    data.startingAmount=20667;data.snapshots=[];data.review={status:"ready",index:0,draft:{},lastCompleted:null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null,notes:{}};saveRender("command");
   }
 
   const actions={
     finishSetup(){data.reviewDay=UI.byId("setupDay").value;data.reviewTime=UI.byId("setupTime").value||"7:30 PM";data.strategy=UI.byId("setupStrategy").value;data.setupComplete=true;saveRender("command");},
-    startReview(){if(!activeAccounts().length){renderAccountForm();return;}if(data.review.status==="complete"){render("review");return;}if(data.review.status!=="inProgress"&&data.review.status!=="allUpdated"&&data.review.status!=="paidOffPrompt"){data.review={status:"ready",index:0,draft:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null};}saveRender("review");},
-    beginNewReview(){data.review={status:"inProgress",index:0,draft:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null};saveRender("review");},
+    startReview(){if(!activeAccounts().length){renderAccountForm();return;}if(data.review.status==="complete"){render("review");return;}if(data.review.status!=="inProgress"&&data.review.status!=="allUpdated"&&data.review.status!=="paidOffPrompt"){data.review={status:"ready",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};}saveRender("review");},
+    beginNewReview(){data.review={status:"inProgress",index:0,draft:{},notes:{},lastCompleted:data.review?.lastCompleted||null,nextReview:"Next Thursday",pendingPaidOff:null,pendingReflection:null};saveRender("review");},
     cancelReview(){saveRender("command");},
-    saveAccountReview(){const accounts=reviewAccounts();const account=accounts[data.review.index];const input=UI.byId("todayBalance");if(!account||!input)return;const value=Number(input.value)||0;data.review.draft=data.review.draft||{};data.review.draft[account.id]=value;if(value===0 && !account.paidOff){data.review.status="paidOffPrompt";data.review.pendingPaidOff={accountId:account.id};saveRender("review");return;}advanceReview();},
+    saveAccountReview(){const accounts=reviewAccounts();const account=accounts[data.review.index];const input=UI.byId("todayBalance");if(!account||!input)return;const value=Number(input.value)||0;data.review.draft=data.review.draft||{};data.review.notes=data.review.notes||{};data.review.draft[account.id]=value;if(value===0 && !account.paidOff){data.review.status="paidOffPrompt";data.review.pendingPaidOff={accountId:account.id};saveRender("review");return;}const delta=accountDelta(account,value);if(Math.abs(delta)>=1){data.review.status="reflection";data.review.pendingReflection={accountId:account.id,previous:Number(account.balance)||0,current:value,delta};saveRender("review");return;}advanceReview();},
     backFromPaidOffPrompt(){data.review.status="inProgress";data.review.pendingPaidOff=null;saveRender("review");},
+    backFromReflection(){data.review.status="inProgress";data.review.pendingReflection=null;saveRender("review");},
+    continueAfterReflection(){advanceReview();},
+    addReflectionNote(){const pending=data.review.pendingReflection;if(!pending)return;const note=prompt("Add a short note", data.review.notes?.[pending.accountId] || "");if(note!==null){data.review.notes=data.review.notes||{};data.review.notes[pending.accountId]=note.trim();save();}advanceReview();},
     confirmPaidOff(){const pending=data.review.pendingPaidOff;const account=data.accounts.find(a=>a.id===pending?.accountId);if(account){data.review.draft[account.id]=0;completeAccount(account);}advanceReview();},
     notPaidOffYet(){advanceReview();},
     resumeLastAccount(){data.review.status="inProgress";data.review.index=Math.max(0,(data.review.index||0)-1);saveRender("review");},
-    closeWeek(){const accounts=reviewAccounts();accounts.forEach(a=>{if(data.review.draft&&data.review.draft[a.id]!==undefined && !a.paidOff)a.balance=Number(data.review.draft[a.id])||0;});data.review.status="complete";data.review.lastCompleted=new Date().toISOString();const allVisible=E.allAccounts(data).filter(a=>!a.archived);data.snapshots.push({date:data.review.lastCompleted,totalBalance:E.totalBalance(activeAccounts(data)),focusAccountId:focus()?.id||null,accounts:allVisible.map(a=>({id:a.id,name:a.name,balance:a.balance,paidOff:Boolean(a.paidOff)}))});save();renderWeekClosed();},
+    closeWeek(){const observations=weeklyObservations();const reflection=weeklyReflectionSentence(observations);const accounts=reviewAccounts();accounts.forEach(a=>{if(data.review.draft&&data.review.draft[a.id]!==undefined && !a.paidOff)a.balance=Number(data.review.draft[a.id])||0;});data.review.status="complete";data.review.lastCompleted=new Date().toISOString();const allVisible=E.allAccounts(data).filter(a=>!a.archived);data.snapshots.push({date:data.review.lastCompleted,totalBalance:E.totalBalance(activeAccounts(data)),focusAccountId:focus()?.id||null,reflection,observations,notes:data.review.notes||{},accounts:allVisible.map(a=>({id:a.id,name:a.name,balance:a.balance,paidOff:Boolean(a.paidOff)}))});save();renderWeekClosed();},
     showAddAccount(){renderAccountForm();},
     showAccountDetail(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account)renderAccountDetail(account);},
     manageAccount(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account)renderManageAccount(account);},
