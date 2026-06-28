@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION="v1.1.2";
-  const APP_BUILD=112;
+  const APP_VERSION="v1.1.3";
+  const APP_BUILD=113;
   let updateInfo=null;
   let versionTapCount=0;
   const startupErrors=window.SEASONS_BOOT_ERRORS || [];
@@ -70,11 +70,26 @@
 
   function render(screen){
     try{
-      if(!data.setupComplete){renderOnboarding();show("onboarding");return;}
-      renderCommand();renderReview();renderAccounts();renderSettings();show(screen);
+      if(!data.setupComplete){safeSection("onboarding", renderOnboarding);show("onboarding");return;}
+      safeSection("command", renderCommand);
+      safeSection("review", renderReview);
+      safeSection("accounts", renderAccounts);
+      safeSection("settings", renderSettings);
+      show(screen);
     }catch(error){
       startupErrors.push("Render failed: "+(error?.message||error));
       renderStartupError(error);
+    }
+  }
+
+  function safeSection(name, fn){
+    try{ fn(); }
+    catch(error){
+      startupErrors.push(name+" failed: "+(error?.message||error));
+      const target=screens[name] || UI.byId(name);
+      if(target){
+        target.innerHTML=`<div class="topbar"><div class="brand">SEASONS</div></div><div class="card startupError"><div class="screenTitle">${name.charAt(0).toUpperCase()+name.slice(1)} is temporarily unavailable.</div><p class="sub">Seasons kept the rest of the app open instead of getting stuck.</p><button class="btn" data-action="showDiagnostics">Show diagnostics</button><button class="btn secondary" data-action="clearAppCache">Clear cache and reload</button></div>`;
+      }
     }
   }
 
@@ -82,9 +97,18 @@
     const target=UI.byId("command") || document.querySelector(".screen");
     if(target){
       target.classList.add("active");
-      target.innerHTML=`<div class="topbar"><div class="brand">SEASONS</div></div><div class="card startupError"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered instead of staying stuck on the opening screen.</p><button class="btn" data-action="clearAppCache">Clear cache and reload</button><button class="btn secondary" onclick="location.reload()">Reload</button><p class="tinyNote">${APP_VERSION}</p></div>`;
+      target.innerHTML=`<div class="topbar"><div class="brand">SEASONS</div></div><div class="card startupError"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered instead of staying stuck on the opening screen.</p><button class="btn" data-action="clearAppCache">Clear cache and reload</button><button class="btn secondary" data-action="showDiagnostics">Show diagnostics</button><button class="btn secondary" onclick="location.reload()">Reload</button><p class="tinyNote">${APP_VERSION}</p></div>`;
     }
     try{window.SEASONS_HIDE_SPLASH && window.SEASONS_HIDE_SPLASH();}catch(_){}
+  }
+
+  function renderDiagnostics(){
+    const target=UI.byId("settings") || UI.byId("command") || document.querySelector(".screen");
+    const errors=(startupErrors.length?startupErrors:["No startup errors recorded."]).slice(-12);
+    if(target){
+      target.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToCommand">‹</button><div class="reviewTitle">Diagnostics</div><span></span></div><div class="card"><div class="label">App Version</div><div class="value">${APP_VERSION}</div><p class="sub">This screen helps identify startup and module errors.</p></div><div class="card"><div class="label">Startup Log</div><pre class="debugLog">${UI.escapeHtml(errors.join("\n"))}</pre></div><button class="btn" data-action="clearAppCache">Clear cache and reload</button><button class="btn secondary" data-action="resetLocalData">Reset local data</button>`;
+      show(target.id || "command");
+    }
   }
 
   function renderOnboarding(){
@@ -556,6 +580,42 @@
   function advanceReview(){const accounts=reviewAccounts();if(data.review.index>=accounts.length-1){data.review.status="allUpdated";}else{data.review.index+=1;data.review.status="inProgress";}data.review.pendingPaidOff=null;data.review.pendingReflection=null;saveRender("review");}
   function completeAccount(account){account.balance=0;account.paidOff=true;account.completedAt=new Date().toISOString();}
 
+
+  function renderSettings(){
+    screens.settings.innerHTML=`
+      <div class="reviewHeader"><div class="screenTitle">Settings</div><button class="smallBtn" data-action="forceUpdateCheck">Check</button></div>
+      <div class="card">
+        <div class="label">Weekly Review</div>
+        <button class="settingChoice" data-action="editReviewDay"><span><b>${UI.escapeHtml(data.reviewDay||"Thursday")}</b><span class="sub">Review day</span></span><span class="miniChev">›</span></button>
+        <button class="settingChoice" data-action="editReviewTime"><span><b>${UI.escapeHtml(data.reviewTime||"7:30 PM")}</b><span class="sub">Review time</span></span><span class="miniChev">›</span></button>
+      </div>
+      <div class="card">
+        <div class="label">Focus Strategy</div>
+        <button class="settingChoice" data-action="editStrategy"><span><b>${UI.escapeHtml(UI.strategyLabel(data.strategy))}</b><span class="sub">How Seasons chooses your focus debt</span></span><span class="miniChev">›</span></button>
+      </div>
+      <div class="card">
+        <div class="label">App</div>
+        <button class="settingChoice" data-action="showDiagnostics"><span><b>Diagnostics</b><span class="sub">Version, startup log, and recovery tools</span></span><span class="miniChev">›</span></button>
+        <button class="settingChoice" data-action="clearAppCache"><span><b>Clear cache and reload</b><span class="sub">Use this after uploading a new build</span></span><span class="miniChev">›</span></button>
+        <button class="settingChoice" data-action="exportData"><span><b>Export backup</b><span class="sub">Download your local Seasons data</span></span><span class="miniChev">›</span></button>
+      </div>
+      <button class="btn secondary" data-action="loadDemoData">Load Demo Data</button>
+      <button class="btn secondary" data-action="resetAll">Reset Seasons</button>
+      <p class="tinyNote" data-action="tapVersion">${APP_VERSION}</p>`;
+  }
+
+  function renderDayPicker(){
+    const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Review Day</div><span></span></div><div class="card accountList">${days.map(day=>`<button class="settingChoice" data-action="setReviewDay" data-value="${day}"><span><b>${day}</b></span>${data.reviewDay===day?'<span class="check miniCheck">✓</span>':'<span class="miniChev">›</span>'}</button>`).join("")}</div>`;
+    show("settings");
+  }
+
+  function renderStrategyPicker(){
+    const strategies=[{id:"avalanche",label:"Highest Interest First",sub:"Usually saves the most interest."},{id:"snowball",label:"Smallest Balance First",sub:"Builds momentum with faster wins."}];
+    screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Focus Strategy</div><span></span></div><div class="card accountList">${strategies.map(s=>`<button class="settingChoice" data-action="setStrategy" data-value="${s.id}"><span><b>${s.label}</b><span class="sub">${s.sub}</span></span>${data.strategy===s.id?'<span class="check miniCheck">✓</span>':'<span class="miniChev">›</span>'}</button>`).join("")}</div>`;
+    show("settings");
+  }
+
   async function checkForUpdate(silent=true){
     try{
       const response=await fetch(`version.json?ts=${Date.now()}`,{cache:"no-store"});
@@ -629,15 +689,26 @@
     tapVersion(){versionTapCount+=1;if(versionTapCount>=5){data.devMode=true;saveRender("settings");}},
     forceUpdateCheck(){checkForUpdate(false);},
     async reloadUpdate(){await clearCaches();location.reload();},
-    async clearAppCache(){await clearCaches();alert("Cache cleared. Reloading Seasons.");location.reload();},
+    async clearAppCache(){await clearCaches();try{localStorage.removeItem("seasons_v01_data_corrupt");}catch(_){} alert("Cache cleared. Reloading Seasons.");location.reload();},
+    showDiagnostics(){renderDiagnostics();},
+    resetLocalData(){if(confirm("Reset local data and reload Seasons?")){try{localStorage.removeItem("seasons_v01_data");}catch(_){} location.reload();}},
     loadDemoData(){if(confirm("Replace local data with demo data?")){loadDemoDataset();}},
     backToSettings(){renderSettings();show("settings");}
   };
 
-  function handleClick(event){const actionTarget=event.target.closest("[data-action]");if(actionTarget){const action=actionTarget.dataset.action;if(actions[action]){actions[action](actionTarget);return;}}const screenTarget=event.target.closest("[data-screen]");if(screenTarget){const id=screenTarget.dataset.screen;render(id);}}
+  function handleClick(event){
+    try{
+      const actionTarget=event.target.closest("[data-action]");
+      if(actionTarget){const action=actionTarget.dataset.action;if(actions[action]){actions[action](actionTarget);return;}}
+      const screenTarget=event.target.closest("[data-screen]");if(screenTarget){const id=screenTarget.dataset.screen;render(id);}
+    }catch(error){
+      startupErrors.push("Action failed: "+(error?.message||error));
+      renderStartupError(error);
+    }
+  }
   document.addEventListener("click",handleClick);
-  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js?v=1.1.2").catch(error=>startupErrors.push("Service worker failed: "+(error?.message||error)));}
+  if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js?v=1.1.3").catch(error=>startupErrors.push("Service worker failed: "+(error?.message||error)));}
   try{render(data.setupComplete?"command":"onboarding");}catch(error){startupErrors.push("Startup failed: "+(error?.message||error));renderStartupError(error);}
   setTimeout(()=>{try{window.SEASONS_HIDE_SPLASH ? window.SEASONS_HIDE_SPLASH() : document.getElementById("splash")?.classList.add("hiddenSplash");}catch(_){}},900);
-  setTimeout(()=>checkForUpdate(true),800);
+  setTimeout(()=>{try{checkForUpdate(true);}catch(error){startupErrors.push("Update check failed: "+(error?.message||error));}},800);
 })();

@@ -1,3 +1,12 @@
+# Changelog
+
+## v1.1.3 - Stability Release
+- Fixed startup failure caused by missing Settings render path.
+- Added safe per-screen rendering. If one area fails, the rest of the app remains usable.
+- Added Diagnostics screen with startup log.
+- Added reset local data recovery option.
+- Updated cache/version identifiers to 1.1.3.
+
 # v1.1.2 — Reliability Update
 
 - Added a startup failsafe so the splash screen cannot hang indefinitely.

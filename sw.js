@@ -1,4 +1,4 @@
-const CACHE="seasons-v112-20260628";
+const CACHE="seasons-v113-20260628";
 const ASSETS=["./","./index.html","./style.css?v=1.1.2","./storage.js?v=1.1.2","./engine.js?v=1.1.2","./ui.js?v=1.1.2","./app.js?v=1.1.2","./manifest.webmanifest","./icon.svg","./version.json"];
 self.addEventListener("install",event=>{
   self.skipWaiting();

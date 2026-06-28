@@ -17,3 +17,10 @@ The goal isn't to stay in one season forever. The goal is to recognize what dese
 ## Install
 
 Upload the ZIP contents to the existing GitHub Pages repository and commit directly to `main`.
+
+
+## v1.1.3 Stability Release
+- Restored Settings rendering so startup can complete.
+- Added module-level safe rendering so one broken screen will not block the whole app.
+- Added Diagnostics with startup log and local recovery tools.
+- Wrapped actions and update checks in error recovery.
