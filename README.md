@@ -14,3 +14,13 @@ A local-first weekly financial review prototype.
 - Export backup and reset local data
 
 No bank connections. No personal data included.
+
+
+## v0.4
+
+- Added account detail view.
+- Added balance history from completed Weekly Reviews.
+- Added statement day field.
+- Kept promotional APR details visible on account detail.
+- Added archive account action from detail.
+- Added a subtle page-like screen transition foundation for later refinement.

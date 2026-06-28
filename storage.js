@@ -21,6 +21,7 @@
     balance:Number(account.balance)||0,
     apr:Number(account.apr)||0,
     min:Number(account.min)||0,
+    statementDay:account.statementDay || "",
     note:account.note || "",
     promoEnabled:Boolean(account.promoEnabled),
     promoApr:Number(account.promoApr)||0,

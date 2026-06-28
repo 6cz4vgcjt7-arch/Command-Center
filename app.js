@@ -96,10 +96,44 @@
       <button class="btn" data-screen="command">Return to Command</button>
     </div>`;show("review");setTimeout(()=>render("command"),3200);}
 
+  function historyForAccount(account){
+    const entries=(data.snapshots||[])
+      .map(snapshot=>{
+        const found=(snapshot.accounts||[]).find(item=>item.id===account.id);
+        return found?{date:snapshot.date,balance:Number(found.balance)||0}:null;
+      })
+      .filter(Boolean)
+      .sort((a,b)=>new Date(b.date)-new Date(a.date));
+    return entries;
+  }
+
   function renderAccounts(){const accounts=activeAccounts();const f=focus();screens.accounts.innerHTML=`
     <div class="reviewHeader"><div class="screenTitle">Accounts</div><button class="smallBtn" data-action="showAddAccount">＋</button></div>
-    <div class="accountList">${accounts.length?accounts.map(a=>{const promo=promoSummary(a);return `<div class="accountRow" data-action="editAccount" data-id="${a.id}"><div class="accountMeta"><div>${f&&f.id===a.id?`<span class="focusDot"></span>`:""}${UI.escapeHtml(a.name)}</div><div class="sub">${UI.escapeHtml(a.type||"Account")}${promo?` • ${promo}`:""}</div></div><div class="row"><span>${UI.money(a.balance)}</span></div></div>`}).join(""):`<div class="empty">No accounts yet.</div>`}</div>
+    <div class="accountList">${accounts.length?accounts.map(a=>{const promo=promoSummary(a);return `<div class="accountRow" data-action="showAccountDetail" data-id="${a.id}"><div class="accountMeta"><div>${f&&f.id===a.id?`<span class="focusDot"></span>`:""}${UI.escapeHtml(a.name)}</div><div class="sub">${UI.escapeHtml(a.type||"Account")}${promo?` • ${promo}`:""}</div></div><div class="row"><span>${UI.money(a.balance)}</span></div></div>`}).join(""):`<div class="empty">No accounts yet.</div>`}</div>
     <button class="btn secondary" data-action="showAddAccount">Add Account</button>`;}
+
+  function renderAccountDetail(account){const promo=promoSummary(account);const history=historyForAccount(account);screens.accounts.innerHTML=`
+    <div class="reviewHeader"><button class="back" data-action="backToAccounts">‹</button><div class="reviewTitle">${UI.escapeHtml(account.name)}</div><button class="smallBtn" data-action="editAccount" data-id="${account.id}">Edit</button></div>
+    ${focus()?.id===account.id?`<div class="pill detailPill">Focus Account</div>`:""}
+    <div class="card detailCard">
+      <div class="detailRow"><span>Current Balance</span><strong>${UI.money(account.balance)}</strong></div>
+      <div class="detailRow"><span>APR</span><strong>${Number(account.apr||0).toFixed(2)}%</strong></div>
+      <div class="detailRow"><span>Minimum Payment</span><strong>${UI.money(account.min)}</strong></div>
+      <div class="detailRow"><span>Statement Day</span><strong>${account.statementDay?UI.escapeHtml(account.statementDay):"—"}</strong></div>
+    </div>
+    ${account.promoEnabled?`<div class="card detailCard">
+      <div class="label">Promotional APR</div>
+      <div class="detailRow"><span>Current Promo APR</span><strong>${Number(account.promoApr||0).toFixed(2)}%</strong></div>
+      <div class="detailRow"><span>Expires</span><strong>${account.promoExpires?UI.prettyDate(account.promoExpires):"—"}</strong></div>
+      <div class="detailRow"><span>Standard APR After</span><strong>${Number(account.standardApr||account.apr||0).toFixed(2)}%</strong></div>
+      ${promo?`<div class="helper">${promo}</div>`:""}
+    </div>`:""}
+    <div class="card detailCard">
+      <div class="label">History</div>
+      ${history.length?history.slice(0,8).map(entry=>`<div class="detailRow"><span>${UI.prettySnapshotDate(entry.date)}</span><strong>${UI.money(entry.balance)}</strong></div>`).join(""):`<div class="sub">Balance history will appear after Weekly Reviews.</div>`}
+    </div>
+    ${account.note?`<div class="card"><div class="label">Notes</div><div class="sub">${UI.escapeHtml(account.note)}</div></div>`:""}
+    <button class="btn danger" data-action="archiveAccount" data-id="${account.id}">Archive Account</button>`;show("accounts");}
 
   function renderAccountForm(account=null){const isEdit=Boolean(account);const promoOn=Boolean(account?.promoEnabled);screens.accounts.innerHTML=`
     <div class="reviewHeader"><button class="back" data-action="backToAccounts">‹</button><div class="reviewTitle">${isEdit?"Edit Account":"Add Account"}</div><button class="smallBtn" data-action="saveAccount" data-id="${account?.id||""}">Save</button></div>
@@ -109,6 +143,7 @@
       <label class="label" for="formBalance">Current Balance</label><input id="formBalance" type="number" inputmode="decimal" value="${Number(account?.balance)||0}">
       <label class="label" for="formApr">Standard APR</label><input id="formApr" type="number" inputmode="decimal" value="${Number(account?.apr)||0}">
       <label class="label" for="formMin">Minimum Payment</label><input id="formMin" type="number" inputmode="decimal" value="${Number(account?.min)||0}">
+      <label class="label" for="formStatementDay">Statement Day</label><input id="formStatementDay" inputmode="numeric" value="${UI.escapeHtml(account?.statementDay||"")}" placeholder="e.g., 15th">
     </div>
     <div class="card promoCard">
       <label class="toggleRow"><span><span class="label">Promotional APR</span><span class="sub">Track intro rates and expiration dates.</span></span><input id="formPromo" type="checkbox" ${promoOn?"checked":""}></label>
@@ -158,9 +193,10 @@
     resumeLastAccount(){data.review.status="inProgress";data.review.index=Math.max(0,(data.review.index||0)-1);saveRender("review");},
     closeWeek(){const accounts=reviewAccounts();accounts.forEach(a=>{if(data.review.draft&&data.review.draft[a.id]!==undefined)a.balance=Number(data.review.draft[a.id])||0;});data.review.status="complete";data.review.lastCompleted=new Date().toISOString();data.snapshots.push({date:data.review.lastCompleted,totalBalance:E.totalBalance(activeAccounts(data)),accounts:activeAccounts(data).map(a=>({id:a.id,name:a.name,balance:a.balance}))});save();renderWeekClosed();},
     showAddAccount(){renderAccountForm();},
+    showAccountDetail(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account)renderAccountDetail(account);},
     editAccount(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account)renderAccountForm(account);},
     backToAccounts(){renderAccounts();show("accounts");},
-    saveAccount(node){const id=node.dataset.id;let account=data.accounts.find(a=>a.id===id);if(!account){account={id:`acct_${Date.now()}`,archived:false};data.accounts.push(account);}account.name=UI.byId("formName").value||"Account";account.type=UI.byId("formType").value;account.balance=Number(UI.byId("formBalance").value)||0;account.apr=Number(UI.byId("formApr").value)||0;account.min=Number(UI.byId("formMin").value)||0;account.note=UI.byId("formNote").value||"";account.promoEnabled=Boolean(UI.byId("formPromo")?.checked);account.promoApr=Number(UI.byId("formPromoApr")?.value)||0;account.promoExpires=UI.byId("formPromoExpires")?.value||"";account.standardApr=Number(UI.byId("formStandardApr")?.value)||account.apr;if(!data.startingAmount)data.startingAmount=E.totalBalance(activeAccounts(data));saveRender("accounts");},
+    saveAccount(node){const id=node.dataset.id;let account=data.accounts.find(a=>a.id===id);if(!account){account={id:`acct_${Date.now()}`,archived:false};data.accounts.push(account);}account.name=UI.byId("formName").value||"Account";account.type=UI.byId("formType").value;account.balance=Number(UI.byId("formBalance").value)||0;account.apr=Number(UI.byId("formApr").value)||0;account.min=Number(UI.byId("formMin").value)||0;account.statementDay=UI.byId("formStatementDay")?.value||"";account.note=UI.byId("formNote").value||"";account.promoEnabled=Boolean(UI.byId("formPromo")?.checked);account.promoApr=Number(UI.byId("formPromoApr")?.value)||0;account.promoExpires=UI.byId("formPromoExpires")?.value||"";account.standardApr=Number(UI.byId("formStandardApr")?.value)||account.apr;if(!data.startingAmount)data.startingAmount=E.totalBalance(activeAccounts(data));save();renderAccountDetail(account);},
     archiveAccount(node){const account=data.accounts.find(a=>a.id===node.dataset.id);if(account&&confirm("Archive this account?")){account.archived=true;saveRender("accounts");}},
     exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="seasons-backup.json";link.click();},
     resetAll(){if(confirm("Reset all local Seasons data?")){data=window.CCStorage.reset();location.reload();}},

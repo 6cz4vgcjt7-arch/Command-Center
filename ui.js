@@ -16,6 +16,7 @@
   function displayName(account){return account?.name || "Account";}
   function strategyLabel(strategy){return strategy==="snowball"?"Smallest Balance First":"Highest Interest First";}
   function prettyDate(value){if(!value)return "";const d=new Date(value+"T00:00:00");if(Number.isNaN(d.getTime()))return value;return d.toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"});}
-  window.SeasonsUI={byId,escapeHtml,showScreen,setActiveNav,money,todayParts,leaf,cycle,reviewSegments,displayName,strategyLabel,prettyDate};
+  function prettySnapshotDate(value){if(!value)return "";const d=new Date(value);if(Number.isNaN(d.getTime()))return value;return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
+  window.SeasonsUI={byId,escapeHtml,showScreen,setActiveNav,money,todayParts,leaf,cycle,reviewSegments,displayName,strategyLabel,prettyDate,prettySnapshotDate};
   window.CCUI=Object.assign({},window.SeasonsUI,{monthName(months){const d=new Date();d.setMonth(d.getMonth()+months);return d.toLocaleString(undefined,{month:"short",year:"numeric"});}});
 })();
