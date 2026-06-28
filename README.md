@@ -1,17 +1,14 @@
-# Seasons v0.5
+# Seasons v0.6
 
 A local-first weekly financial review prototype.
 
-## What's new in v0.5
+## What's new in v0.6
 
-- Real account-by-account Weekly Review flow refined
-- Four-segment cycle remains visible through the review
-- Detects $0 balances during review and offers to mark the account as paid off
-- Completed accounts are separated from active accounts
-- Account detail now uses Manage Account instead of Archive as the primary action
-- Added Mark as Paid Off flow
-- Snapshots now include focus account ID and paid-off status
-- Progress status engine can flag Needs Attention when the focus account is flat/increasing across four completed reviews
+- Refined bottom navigation into a calmer text-based tab bar
+- Replaced the placeholder leaf with a simpler, more refined leaf mark
+- Moved account Save action to a larger bottom button
+- Changed promo expiration language from “reviews remaining” to “weeks remaining”
+- Preserved v0.5 paid-off account and progress engine behavior
 
 ## Privacy
 

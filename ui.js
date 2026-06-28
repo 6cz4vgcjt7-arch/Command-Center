@@ -5,7 +5,7 @@
   function setActiveNav(id){document.querySelectorAll(".nav button").forEach(button=>button.classList.toggle("active",button.dataset.screen===id));}
   function money(value){return `$${Math.round(Number(value)||0).toLocaleString()}`;}
   function todayParts(){const date=new Date();return{weekday:date.toLocaleDateString(undefined,{weekday:"long"}),date:date.toLocaleDateString(undefined,{month:"long",day:"numeric"})};}
-  function leaf(){return `<svg class="leafMark" viewBox="0 0 64 64" aria-hidden="true"><path d="M18.5 48.5C19.8 31.1 31.1 18.7 48.2 14.8c1.1 17.6-8.6 31.3-25.8 34.8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20.3 51.4c6.2-12.8 14.3-23.4 25.4-32.9" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M31.1 38.5l-1.7-11.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M36.8 31.5l8.2-.8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>`;}
+  function leaf(){return `<svg class="leafMark" viewBox="0 0 64 64" aria-hidden="true"><path d="M20.5 49.5C23.8 34.4 34.1 22.6 49 17.2c.8 14.9-8.4 27.9-23.5 31.6" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M20.5 49.5c7.4-11.7 16.1-21.1 27.6-31.1" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
   function cycle(segments=0,size=""){const filled=Math.max(0,Math.min(4,Number(segments)||0));const arcs=[
     "M32 8 A24 24 0 0 1 56 32",
     "M56 32 A24 24 0 0 1 32 56",

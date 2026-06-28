@@ -38,7 +38,7 @@
     const f=focus();
     const reviewComplete=data.review?.status==="complete";
     const promo=E.soonestPromo(data);
-    const promoLine=promo?`<div class="promoNote">${UI.escapeHtml(promo.name)} promo expires in ${promo.reviewsRemaining} weekly review${promo.reviewsRemaining===1?"":"s"}</div>`:"";
+    const promoLine=promo?`<div class="promoNote">${UI.escapeHtml(promo.name)} promo expires in ${promo.reviewsRemaining} week${promo.reviewsRemaining===1?"":"s"}</div>`:"";
     const progress=E.progressStatus(data);
     screens.command.innerHTML=`
       <div class="topbar brandOnly"><h1 class="brand">SEASONS</h1></div>
@@ -57,7 +57,7 @@
     const apr=`${Number(account.promoApr||0).toFixed(2)}% promo`;
     if(!account.promoExpires)return apr;
     const reviews=E.weeklyReviewsUntil(account.promoExpires);
-    return reviews===null?apr:`${apr}, ${reviews} review${reviews===1?"":"s"} left`;
+    return reviews===null?apr:`${apr}, ${reviews} week${reviews===1?"":"s"} left`;
   }
 
   function renderReview(){
@@ -185,7 +185,7 @@
   function renderAccountForm(account=null){
     const isEdit=Boolean(account);const promoOn=Boolean(account?.promoEnabled);
     screens.accounts.innerHTML=`
-      <div class="reviewHeader"><button class="back" data-action="backToAccounts">‹</button><div class="reviewTitle">${isEdit?"Edit Account":"Add Account"}</div><button class="smallBtn" data-action="saveAccount" data-id="${account?.id||""}">Save</button></div>
+      <div class="reviewHeader"><button class="back" data-action="backToAccounts">‹</button><div class="reviewTitle">${isEdit?"Edit Account":"Add Account"}</div><span></span></div>
       <div class="card">
         <label class="label" for="formName">Account Name</label><input id="formName" value="${UI.escapeHtml(account?.name||"")}" placeholder="e.g., Chase Freedom">
         <label class="label" for="formType">Account Type</label><select id="formType"><option ${account?.type==="Credit Card"?"selected":""}>Credit Card</option><option ${account?.type==="Auto Loan"?"selected":""}>Auto Loan</option><option ${account?.type==="Personal Loan"?"selected":""}>Personal Loan</option><option ${account?.type==="Student Loan"?"selected":""}>Student Loan</option><option ${account?.type==="HELOC"?"selected":""}>HELOC</option></select>
@@ -194,8 +194,9 @@
         <label class="label" for="formMin">Minimum Payment</label><input id="formMin" type="number" inputmode="decimal" value="${Number(account?.min)||0}">
         <label class="label" for="formStatementDay">Statement Day</label><input id="formStatementDay" inputmode="numeric" value="${UI.escapeHtml(account?.statementDay||"")}" placeholder="e.g., 15th">
       </div>
-      <div class="card promoCard"><label class="toggleRow"><span><span class="label">Promotional APR</span><span class="sub">Track intro rates and expiration dates.</span></span><input id="formPromo" type="checkbox" ${promoOn?"checked":""}></label><div id="promoFields" class="${promoOn?"":"hidden"}"><label class="label" for="formPromoApr">Current Promo APR</label><input id="formPromoApr" type="number" inputmode="decimal" value="${Number(account?.promoApr)||0}"><label class="label" for="formPromoExpires">Expires</label><input id="formPromoExpires" type="date" value="${UI.escapeHtml(account?.promoExpires||"")}"><label class="label" for="formStandardApr">Standard APR After</label><input id="formStandardApr" type="number" inputmode="decimal" value="${Number(account?.standardApr||account?.apr)||0}"><div class="helper" id="promoReviews">${account?.promoExpires?`${E.weeklyReviewsUntil(account.promoExpires)} weekly review${E.weeklyReviewsUntil(account.promoExpires)===1?"":"s"} remaining`:"Add an expiration date to see weekly reviews remaining."}</div></div></div>
-      <div class="card"><label class="label" for="formNote">Notes</label><textarea id="formNote" placeholder="Optional">${UI.escapeHtml(account?.note||"")}</textarea></div>`;
+      <div class="card promoCard"><label class="toggleRow"><span><span class="label">Promotional APR</span><span class="sub">Track intro rates and expiration dates.</span></span><input id="formPromo" type="checkbox" ${promoOn?"checked":""}></label><div id="promoFields" class="${promoOn?"":"hidden"}"><label class="label" for="formPromoApr">Current Promo APR</label><input id="formPromoApr" type="number" inputmode="decimal" value="${Number(account?.promoApr)||0}"><label class="label" for="formPromoExpires">Expires</label><input id="formPromoExpires" type="date" value="${UI.escapeHtml(account?.promoExpires||"")}"><label class="label" for="formStandardApr">Standard APR After</label><input id="formStandardApr" type="number" inputmode="decimal" value="${Number(account?.standardApr||account?.apr)||0}"><div class="helper" id="promoReviews">${account?.promoExpires?`${E.weeklyReviewsUntil(account.promoExpires)} week${E.weeklyReviewsUntil(account.promoExpires)===1?"":"s"} remaining`:"Add an expiration date to see weeks remaining."}</div></div></div>
+      <div class="card"><label class="label" for="formNote">Notes</label><textarea id="formNote" placeholder="Optional">${UI.escapeHtml(account?.note||"")}</textarea></div>
+      <div class="formFooter"><button class="btn formSaveBtn" data-action="saveAccount" data-id="${account?.id||""}">${isEdit?"Save Changes":"Save Account"}</button></div>`;
     show("accounts");setTimeout(()=>wirePromoForm(),0);
   }
 
@@ -204,7 +205,7 @@
   function renderDayPicker(){const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Weekly Review Day</div><span></span></div><div class="card accountList">${days.map(day=>`<button class="settingChoice ${data.reviewDay===day?"selected":""}" data-action="setReviewDay" data-value="${day}"><span>${day}</span>${data.reviewDay===day?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
   function renderStrategyPicker(){const strategies=[{value:"avalanche",label:"Highest Interest First",sub:"Save more by paying interest first."},{value:"snowball",label:"Smallest Balance First",sub:"Build momentum through early wins."}];screens.settings.innerHTML=`<div class="reviewHeader"><button class="back" data-action="backToSettings">‹</button><div class="reviewTitle">Focus Strategy</div><span></span></div><div class="card accountList">${strategies.map(strategy=>`<button class="settingChoice ${data.strategy===strategy.value?"selected":""}" data-action="setStrategy" data-value="${strategy.value}"><span><b>${strategy.label}</b><span class="sub">${strategy.sub}</span></span>${data.strategy===strategy.value?'<span class="check">✓</span>':''}</button>`).join("")}</div>`;show("settings");}
 
-  function wirePromoForm(){const checkbox=UI.byId("formPromo");const fields=UI.byId("promoFields");const expires=UI.byId("formPromoExpires");const reviews=UI.byId("promoReviews");if(checkbox&&fields){checkbox.addEventListener("change",()=>fields.classList.toggle("hidden",!checkbox.checked));}if(expires&&reviews){expires.addEventListener("input",()=>{const n=E.weeklyReviewsUntil(expires.value);reviews.textContent=n===null?"Add an expiration date to see weekly reviews remaining.":`${n} weekly review${n===1?"":"s"} remaining`;});}}
+  function wirePromoForm(){const checkbox=UI.byId("formPromo");const fields=UI.byId("promoFields");const expires=UI.byId("formPromoExpires");const reviews=UI.byId("promoReviews");if(checkbox&&fields){checkbox.addEventListener("change",()=>fields.classList.toggle("hidden",!checkbox.checked));}if(expires&&reviews){expires.addEventListener("input",()=>{const n=E.weeklyReviewsUntil(expires.value);reviews.textContent=n===null?"Add an expiration date to see weeks remaining.":`${n} weekly review${n===1?"":"s"} remaining`;});}}
 
   function advanceReview(){const accounts=reviewAccounts();if(data.review.index>=accounts.length-1){data.review.status="allUpdated";}else{data.review.index+=1;data.review.status="inProgress";}data.review.pendingPaidOff=null;saveRender("review");}
   function completeAccount(account){account.balance=0;account.paidOff=true;account.completedAt=new Date().toISOString();}
