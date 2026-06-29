@@ -132,3 +132,6 @@ html,body{font-family:var(--body)}
 .startupError { margin-top: 24px; }
 .tinyNote { font-size: 12px; opacity: .65; margin-top: 14px; }
 .seasons-boot-error #splash { opacity: 0; pointer-events: none; }
+
+/* v1.2.1 clean stability */
+:root{--forest-green:#1F4D2E;--warm-cream:#FAF8F5;}

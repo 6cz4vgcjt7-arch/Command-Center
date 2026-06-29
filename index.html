@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="style.css?v=1.1.2">
   <title>Seasons</title>
   <script>
-    window.SEASONS_VERSION = "v1.1.3";
+    window.SEASONS_VERSION = "v1.2.1";
     window.SEASONS_BOOT_ERRORS = [];
     window.addEventListener("error", function(event){
       window.SEASONS_BOOT_ERRORS.push((event.message || "Error") + (event.filename ? " @ " + event.filename.split('/').pop() + ":" + event.lineno : ""));
@@ -28,7 +28,7 @@
       var active = document.querySelector(".screen.active");
       if (splash && !splash.classList.contains("hiddenSplash")) window.SEASONS_HIDE_SPLASH();
       if (document.documentElement.classList.contains("seasons-boot-error") && active && !document.getElementById("startupError")) {
-        active.innerHTML = '<div id="startupError" class="startupError card"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered from a startup error instead of staying stuck on the opening screen.</p><button class="btn" onclick="location.reload()">Reload Seasons</button><button class="btn secondary" onclick="caches&&caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k)}))}).then(function(){location.reload()})">Clear cache and reload</button><p class="tinyNote">Version v1.1.3</p></div>';
+        active.innerHTML = '<div id="startupError" class="startupError card"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered from a startup error instead of staying stuck on the opening screen.</p><button class="btn" onclick="location.reload()">Reload Seasons</button><button class="btn secondary" onclick="caches&&caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k)}))}).then(function(){location.reload()})">Clear cache and reload</button><p class="tinyNote">Version v1.2.1</p></div>';
       }
     }, 2500);
   </script>
@@ -56,5 +56,39 @@
   <script src="engine.js?v=1.1.2"></script>
   <script src="ui.js?v=1.1.2"></script>
   <script src="app.js?v=1.1.2"></script>
+
+<script>
+(function(){
+  window.SEASONS_VERSION="v1.2.1";
+  window.SEASONS_BUILD=121;
+  function replaceText(){
+    const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    let n;
+    while(n=w.nextNode()){
+      n.nodeValue=n.nodeValue.replace(/v1\.1\.3/g,"v1.2.1").replace(/v1\.2\.0/g,"v1.2.1").replace(/Build 113/g,"Build 121").replace(/Build 120/g,"Build 121");
+    }
+  }
+  function hideFalseUpdate(){
+    document.querySelectorAll("*").forEach(function(el){
+      const t=(el.textContent||"").trim();
+      if(/New version available/i.test(t)&&(/v1\.2\.0|v1\.2\.1/i.test(t))) el.style.display="none";
+    });
+  }
+  function fixFoundationNames(){
+    document.querySelectorAll("*").forEach(function(el){
+      const t=(el.textContent||"").replace(/\s+/g," ").trim();
+      if(t==="Account Emergency Fund"||t==="Account Emergency Fund $2,000"){
+        el.querySelectorAll("*").forEach(function(c){
+          if((c.textContent||"").trim()==="Account") c.textContent="Emergency Fund";
+        });
+      }
+    });
+  }
+  function run(){replaceText();hideFalseUpdate();fixFoundationNames();}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
+  setInterval(run,1500);
+})();
+</script>
+
 </body>
 </html>

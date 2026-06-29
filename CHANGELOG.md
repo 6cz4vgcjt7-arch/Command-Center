@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.1.3 - Stability Release
+## v1.2.1 - Stability Release
 - Fixed startup failure caused by missing Settings render path.
 - Added safe per-screen rendering. If one area fails, the rest of the app remains usable.
 - Added Diagnostics screen with startup log.
