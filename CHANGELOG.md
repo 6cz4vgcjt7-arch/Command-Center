@@ -1,13 +1,13 @@
 # Changelog
 
-## v1.2.2 - Stability Release
+## v1.2.3 - Stability Release
 - Fixed startup failure caused by missing Settings render path.
 - Added safe per-screen rendering. If one area fails, the rest of the app remains usable.
 - Added Diagnostics screen with startup log.
 - Added reset local data recovery option.
 - Updated cache/version identifiers to 1.1.3.
 
-# v1.2.2 — Reliability Update
+# v1.2.3 — Reliability Update
 
 - Added a startup failsafe so the splash screen cannot hang indefinitely.
 - Added a friendly startup recovery screen with reload and cache-clear options.
@@ -16,7 +16,7 @@
 
 # Changelog
 
-## v1.2.2
+## v1.2.3
 
 - Added Foundation account types: Emergency Fund and Retirement.
 - Reflection Engine now treats debt and foundation accounts differently.
@@ -29,7 +29,7 @@
   - "Seasons change. The goal isn't to stay in one forever. The goal is to recognize what deserves your attention today."
 - Updated documents with Season Transition and Foundations principles.
 
-## v1.2.2
+## v1.2.3
 
 - Focus card opens Focus account detail.
 - Season card opens Current Season detail.
@@ -37,7 +37,7 @@
 - Command spacing tightened.
 
 
-## v1.2.2 — Interaction Polish
+## v1.2.3 — Interaction Polish
 - Split Accounts into Active Debts and Foundations.
 - Simplified Add Account flow; Foundation accounts hide debt-only fields.
 - Reordered Command page to Weekly Review, Season, Focus.
@@ -47,9 +47,8 @@
 - Improved privacy copy and form save placement.
 
 
-## v1.2.2 / Build 122 — Startup Route Fix
+## v1.2.3 / Build 123 — Emergency Restore
 
-- Fixed app reopening to Settings after update/cache reload.
-- Clears stale stored route/screen keys on normal startup.
-- Defaults to Command when no explicit route is requested.
-- Keeps version text consistent with v1.2.2 / Build 122.
+- Restored from the last known working stability build.
+- Removed the startup-route patch that caused the blank screen.
+- Preserved locked logo asset and clean version metadata.

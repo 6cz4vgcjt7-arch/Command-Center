@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="style.css?v=1.1.2">
   <title>Seasons</title>
   <script>
-    window.SEASONS_VERSION = "v1.2.2";
+    window.SEASONS_VERSION = "v1.2.3";
     window.SEASONS_BOOT_ERRORS = [];
     window.addEventListener("error", function(event){
       window.SEASONS_BOOT_ERRORS.push((event.message || "Error") + (event.filename ? " @ " + event.filename.split('/').pop() + ":" + event.lineno : ""));
@@ -28,7 +28,7 @@
       var active = document.querySelector(".screen.active");
       if (splash && !splash.classList.contains("hiddenSplash")) window.SEASONS_HIDE_SPLASH();
       if (document.documentElement.classList.contains("seasons-boot-error") && active && !document.getElementById("startupError")) {
-        active.innerHTML = '<div id="startupError" class="startupError card"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered from a startup error instead of staying stuck on the opening screen.</p><button class="btn" onclick="location.reload()">Reload Seasons</button><button class="btn secondary" onclick="caches&&caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k)}))}).then(function(){location.reload()})">Clear cache and reload</button><p class="tinyNote">Version v1.2.2</p></div>';
+        active.innerHTML = '<div id="startupError" class="startupError card"><div class="screenTitle">Seasons had trouble starting.</div><p class="sub">The app recovered from a startup error instead of staying stuck on the opening screen.</p><button class="btn" onclick="location.reload()">Reload Seasons</button><button class="btn secondary" onclick="caches&&caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k)}))}).then(function(){location.reload()})">Clear cache and reload</button><p class="tinyNote">Version v1.2.3</p></div>';
       }
     }, 2500);
   </script>
@@ -56,116 +56,5 @@
   <script src="engine.js?v=1.1.2"></script>
   <script src="ui.js?v=1.1.2"></script>
   <script src="app.js?v=1.1.2"></script>
-
-<script>
-(function(){
-  window.SEASONS_VERSION="v1.2.2";
-  window.SEASONS_BUILD=121;
-  function replaceText(){
-    const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-    let n;
-    while(n=w.nextNode()){
-      n.nodeValue=n.nodeValue.replace(/v1\.1\.3/g,"v1.2.2").replace(/v1\.2\.0/g,"v1.2.2").replace(/Build 122/g,"Build 122").replace(/Build 122/g,"Build 122");
-    }
-  }
-  function hideFalseUpdate(){
-    document.querySelectorAll("*").forEach(function(el){
-      const t=(el.textContent||"").trim();
-      if(/New version available/i.test(t)&&(/v1\.2\.0|v1\.2\.1/i.test(t))) el.style.display="none";
-    });
-  }
-  function fixFoundationNames(){
-    document.querySelectorAll("*").forEach(function(el){
-      const t=(el.textContent||"").replace(/\s+/g," ").trim();
-      if(t==="Account Emergency Fund"||t==="Account Emergency Fund $2,000"){
-        el.querySelectorAll("*").forEach(function(c){
-          if((c.textContent||"").trim()==="Account") c.textContent="Emergency Fund";
-        });
-      }
-    });
-  }
-  function run(){replaceText();hideFalseUpdate();fixFoundationNames();}
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run();
-  setInterval(run,1500);
-})();
-</script>
-
-
-<script>
-/* Seasons v1.2.2 startup route fix */
-(function(){
-  window.SEASONS_VERSION = "v1.2.2";
-  window.SEASONS_BUILD = 122;
-
-  function shouldDefaultToCommand(){
-    var hash = (location.hash || "").replace("#", "").trim();
-    var query = (location.search || "").trim();
-    return !hash && !/[?&](screen|view|tab|route)=/i.test(query);
-  }
-
-  function setCommandActive(){
-    try {
-      // Clear any persisted "last screen" values that might reopen Settings after upload.
-      Object.keys(localStorage).forEach(function(k){
-        if (/route|screen|view|tab|currentPage|activePage|lastPage/i.test(k)) {
-          try { localStorage.removeItem(k); } catch(e) {}
-        }
-      });
-      sessionStorage.removeItem("seasons-active-tab");
-    } catch(e) {}
-
-    // Prefer app navigation functions if present.
-    ["command","home"].forEach(function(name){
-      try {
-        if (typeof window.showView === "function") window.showView(name);
-        if (typeof window.navigate === "function") window.navigate(name);
-        if (typeof window.setView === "function") window.setView(name);
-        if (typeof window.go === "function") window.go(name);
-      } catch(e) {}
-    });
-
-    // Fallback: click the Command tab if it exists.
-    var candidates = Array.from(document.querySelectorAll("button,a,[role='button'],.tab,.nav-item"));
-    var command = candidates.find(function(el){
-      return /command/i.test((el.textContent || "").trim()) || /command/i.test(el.getAttribute("aria-label") || "");
-    });
-    if (command) {
-      try { command.click(); } catch(e) {}
-    }
-  }
-
-  function run(){
-    if (shouldDefaultToCommand()) setCommandActive();
-
-    // Ensure visible version text is not stale.
-    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    var n;
-    while(n = walker.nextNode()){
-      n.nodeValue = n.nodeValue
-        .replace(/v1\.1\.3/g, "v1.2.2")
-        .replace(/v1\.2\.0/g, "v1.2.2")
-        .replace(/v1\.2\.1/g, "v1.2.2")
-        .replace(/Build 113/g, "Build 122")
-        .replace(/Build 120/g, "Build 122")
-        .replace(/Build 121/g, "Build 122");
-    }
-
-    // Hide false current-version update banners.
-    document.querySelectorAll("*").forEach(function(el){
-      var t = (el.textContent || "").trim();
-      if (/New version available/i.test(t) && /v1\.2\.2/i.test(t)) {
-        el.style.display = "none";
-      }
-    });
-  }
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
-  else run();
-
-  setTimeout(run, 300);
-  setTimeout(run, 1000);
-})();
-</script>
-
 </body>
 </html>

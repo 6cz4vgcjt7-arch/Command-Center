@@ -1,12 +1,14 @@
 # GitHub Upload Notes
 
-Upload all files in this ZIP to the root of the Command-Center repository.
+Emergency restore build based on the last known working stability version.
 
 Commit message:
-Seasons v1.2.2 startup route fix
+Seasons v1.2.3 emergency restore
 
 After upload:
-1. Open the app.
-2. It should start on Command, not Settings.
-3. If it still opens Settings, tap Settings → Clear cache and reload once.
-4. Confirm Settings → Diagnostics shows v1.2.2 / Build 122.
+1. Wait 1–2 minutes for GitHub Pages.
+2. Open Safari to the site first, not the home-screen bookmark.
+3. If blank, reload Safari.
+4. Then Settings → Diagnostics should show v1.2.3 / Build 123.
+
+This build intentionally removes the startup-route patch that caused the blank screen.
