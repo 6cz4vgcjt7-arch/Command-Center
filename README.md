@@ -24,3 +24,14 @@ Upload the ZIP contents to the existing GitHub Pages repository and commit direc
 - Added module-level safe rendering so one broken screen will not block the whole app.
 - Added Diagnostics with startup log and local recovery tools.
 - Wrapped actions and update checks in error recovery.
+
+## Seasons v1.2.0 — Foundation Freeze
+
+This is the clean GitHub baseline build for the founder web prototype.
+
+Locked direction:
+- Open-arc leaf logo
+- Establish / Grow / Steward / Preserve
+- Weekly Review as the heart of the app
+- Reflection before advice
+- Foundation accounts and season-aware review direction
