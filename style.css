@@ -101,7 +101,7 @@ html,body{font-family:var(--body)}
 .seasonQuestion select{margin-bottom:0}
 .cycle.tiny{width:50px;height:50px}.cycle.tiny .cycleLeaf,.cycle.tiny .cycleLeaf .leafMark{width:20px;height:20px}.cycle.tiny .seg{stroke-width:2}.cycle.tiny .seg.filled{stroke-width:3.6}
 
-/* v1.0.1 founder fix pass */
+/* v1.2.2 founder fix pass */
 .commandLogo{display:flex;justify-content:center;margin:-10px 0 10px}
 .commandLogo .cycle.tiny{width:54px;height:54px}
 .commandLogo .cycleLeaf{width:18px;height:18px}
@@ -118,7 +118,7 @@ html,body{font-family:var(--body)}
 .quietMessage .value{font-family:var(--display);font-size:24px;letter-spacing:-.02em;margin-bottom:8px}
 .seasonNotice .btn{margin-top:12px}
 
-/* v1.1.1 interaction polish */
+/* v1.2.2 interaction polish */
 .commandReflection{font-family:var(--display);font-size:18px;line-height:1.35;color:var(--sage-dark);text-align:center;margin:-2px auto 14px;max-width:300px}
 .screenReflection{font-family:var(--display);font-size:18px;line-height:1.35;color:var(--muted);text-align:center;margin:18px 16px 4px}
 .accountIcon{display:inline-block;margin-right:8px;vertical-align:1px}
@@ -128,10 +128,10 @@ html,body{font-family:var(--body)}
 #debtFields.hidden,#promoCard.hidden{display:none!important}
 @media (max-height:760px){.commandReflection{font-size:16px;margin-bottom:8px}.compactDate .weekday{font-size:18px}.compactDate .date{font-size:32px}.commandCard{padding:14px 16px}.primaryReview .status{font-size:24px}.primaryReview .value{font-size:23px}}
 
-/* v1.1.2 startup reliability */
+/* v1.2.2 startup reliability */
 .startupError { margin-top: 24px; }
 .tinyNote { font-size: 12px; opacity: .65; margin-top: 14px; }
 .seasons-boot-error #splash { opacity: 0; pointer-events: none; }
 
-/* v1.2.1 clean stability */
+/* v1.2.2 clean stability */
 :root{--forest-green:#1F4D2E;--warm-cream:#FAF8F5;}

@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION="v1.2.1";
+  const APP_VERSION="v1.2.2";
   const APP_BUILD=113;
   let updateInfo=null;
   let versionTapCount=0;
